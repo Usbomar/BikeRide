@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --bg: #ffffff;
+  --bg-card: #fafafa;
+  --border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
+  --accent-soft: rgba(13, 148, 136, 0.08);
+  --accent2: #ea580c;
+  --accent2-hover: #c2410c;
+  --accent2-soft: rgba(234, 88, 12, 0.12);
+  /* Superfície / reomplerts (tercer color, independent dels accents) */
+  --superficie: #6366f1;
+  --superficie-hover: #4f46e5;
+  --superficie-soft: rgba(99, 102, 241, 0.14);
+  --superficie-muted: rgba(99, 102, 241, 0.07);
+  /* Espai i mida (es poden sobreescriure per configuració) */
+  --app-space-section: 1.25rem;
+  --app-space-card: 1rem;
+  --app-radius-card: 0.75rem;
+  --app-text-base: 15px;
+  --app-max-width: 72rem;
+  --app-border-card: 1px;
+}
+
+[data-tema="fosc"] {
+  --bg: #0f1419;
+  --bg-card: #1a1f26;
+  --border: #2d3748;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent2: #fb923c;
+  --accent2-hover: #fdba74;
+  --accent2-soft: rgba(251, 146, 60, 0.15);
+  --superficie: #818cf8;
+  --superficie-hover: #a5b4fc;
+  --superficie-soft: rgba(129, 140, 248, 0.2);
+  --superficie-muted: rgba(129, 140, 248, 0.1);
+}
+
+/* Presets visuals (apliquen per sobre de tema clar/fosc) */
+[data-preset="neo"] {
+  --bg: #020617;
+  --bg-card: radial-gradient(circle at top left, #0f172a 0, #020617 55%);
+  --border: #1f2937;
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+}
+
+[data-preset="retro"] {
+  --bg: #faf1e4;
+  --bg-card: #f9e4c8;
+  --border: #f4c38d;
+  --text-primary: #3f2a1d;
+  --text-secondary: #6b4b34;
+  --text-muted: #a0764a;
+}
+
+[data-preset="terminal"] {
+  --bg: #020817;
+  --bg-card: #020817;
+  --border: #16a34a;
+  --text-primary: #e5e7eb;
+  --text-secondary: #bbf7d0;
+  --text-muted: #4ade80;
+}
+
+/* Densitat: afecta tota l'app (main, configuració, rutes, etc.) */
+[data-densitat="compact"] {
+  --app-space-section: 0.5rem;
+  --app-space-card: 0.5rem;
+}
+
+/* Reducció d'espais entre seccions i dins blocs */
+[data-densitat="compact"] .space-y-10 > * + * { margin-top: 0.5rem; }
+[data-densitat="compact"] .space-y-8 > * + * { margin-top: 0.5rem; }
+[data-densitat="compact"] .space-y-6 > * + * { margin-top: 0.5rem; }
+[data-densitat="compact"] .space-y-5 > * + * { margin-top: 0.375rem; }
+[data-densitat="compact"] .space-y-4 > * + * { margin-top: 0.375rem; }
+[data-densitat="compact"] .space-y-3 > * + * { margin-top: 0.25rem; }
+[data-densitat="compact"] .space-y-2 > * + * { margin-top: 0.125rem; }
+[data-densitat="compact"] .space-y-1 > * + * { margin-top: 0.125rem; }
+
+[data-densitat="compact"] .gap-6 { gap: 0.5rem; }
+[data-densitat="compact"] .gap-4 { gap: 0.375rem; }
+[data-densitat="compact"] .gap-3 { gap: 0.25rem; }
+[data-densitat="compact"] .gap-2 { gap: 0.125rem; }
+[data-densitat="compact"] .gap-1 { gap: 0.125rem; }
+
+[data-densitat="compact"] .mb-8 { margin-bottom: 0.5rem; }
+[data-densitat="compact"] .mb-6 { margin-bottom: 0.5rem; }
+[data-densitat="compact"] .mb-4 { margin-bottom: 0.375rem; }
+[data-densitat="compact"] .mb-2 { margin-bottom: 0.25rem; }
+[data-densitat="compact"] .mt-2 { margin-top: 0.25rem; }
+[data-densitat="compact"] .py-4 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+[data-densitat="compact"] .py-2 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+[data-densitat="compact"] .pt-2 { padding-top: 0.25rem; }
+
+/* Mida de la lletra */
+[data-mida-lletra="petit"] {
+  --app-text-base: 13px;
+}
+[data-mida-lletra="gran"] {
+  --app-text-base: 17px;
+}
+
+/* Cantonades */
+[data-cantonades="suau"] {
+  --app-radius-card: 1rem;
+}
+[data-cantonades="marcat"] {
+  --app-radius-card: 0.25rem;
+}
+
+/* Amplada del contingut (variable --app-max-width es defineix a ThemeRoot) */
+
+/* Animacions reduïdes */
+[data-animacions="reduides"] * {
+  transition-duration: 0.05s !important;
+}
+[data-animacions="reduides"] button,
+[data-animacions="reduides"] a,
+[data-animacions="reduides"] [class*="transition"] {
+  transition-duration: 0.05s !important;
+}
+
+/* Contrast alt */
+[data-contrast="alt"] {
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --border: #d1d5db;
+}
+[data-tema="fosc"][data-contrast="alt"] {
+  --text-secondary: #e5e7eb;
+  --text-muted: #d1d5db;
+  --border: #4b5563;
+}
+
+/* Vora de les targetes */
+[data-vora-targetes="subtil"] .app-card {
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--border) 55%, transparent);
+}
+[data-vora-targetes="marcada"] .app-card {
+  border-width: 2px;
+  border-color: var(--border);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--app-text-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Classes reutilitzables que respecten la configuració */
+.app-card {
+  padding: var(--app-space-card);
+  border-radius: var(--app-radius-card);
+  border: var(--app-border-card) solid var(--border);
+  background: var(--bg-card);
+}
+
+/* Segon accent: per alternar amb l'accent principal i donar més alegria visual */
+.accent2 { color: var(--accent2); }
+.accent2-bg { background-color: var(--accent2); }
+.accent2-soft { background-color: var(--accent2-soft); }
+.border-accent2 { border-color: var(--accent2); }
+.hover\:accent2-soft:hover { background-color: var(--accent2-soft); }
+.hover\:accent2:hover { color: var(--accent2); }
+
+/* Superfície: fons secundaris, taques, botons alternatius */
+.superficie-text { color: var(--superficie); }
+.superficie-bg { background-color: var(--superficie); }
+.superficie-soft { background-color: var(--superficie-soft); }
+.superficie-muted { background-color: var(--superficie-muted); }
+.border-superficie { border-color: color-mix(in srgb, var(--superficie) 45%, var(--border)); }
+.hover\:superficie-soft:hover { background-color: var(--superficie-soft); }
