@@ -173,7 +173,7 @@ export default function Album() {
   }, [rutes]);
 
   const [tab, setTab] = useState<TabAlbum>('composicio');
-  const [modeComposicio, setModeComposicio] = useState<ModeComposicio>('perRuta');
+  const [modeComposicio, setModeComposicio] = useState<ModeComposicio>('collage');
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
@@ -277,10 +277,10 @@ export default function Album() {
             <button
               type="button"
               onClick={() => setTab('visor')}
-              className={`px-4 py-2 rounded-t-lg text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`px-5 py-2.5 rounded-t-lg text-base font-semibold border-b-2 -mb-px transition-colors ${
                 tab === 'visor'
-                  ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-soft)]/40'
-                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--superficie-soft)]'
+                  ? 'border-[var(--accent2)] text-[var(--accent2)] bg-[var(--accent2-soft)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--accent2)] hover:bg-[var(--accent2-soft)]/60'
               }`}
             >
               Passar fotos
@@ -349,8 +349,8 @@ export default function Album() {
               {(modeComposicio === 'collage' || modeComposicio === 'paisatge' || modeComposicio === 'peu') && (
                 <section className="app-card overflow-hidden">
                   <div
-                    className="grid grid-cols-6 md:grid-cols-12 gap-2 md:gap-3 [grid-auto-rows:minmax(72px,auto)] md:[grid-auto-rows:minmax(88px,auto)]"
-                    style={{ gridAutoFlow: 'dense' }}
+                    className="grid grid-cols-6 md:grid-cols-12 [grid-auto-rows:minmax(72px,auto)] md:[grid-auto-rows:minmax(88px,auto)]"
+                    style={{ gridAutoFlow: 'dense', gap: modeComposicio === 'collage' ? '10px' : undefined }}
                   >
                     {fotosOrdenades.map((f, i) => {
                       const gi = i;
@@ -386,7 +386,7 @@ export default function Album() {
                           <img
                             src={f.url}
                             alt={f.caption || f.rutaNom}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                            className="h-full w-full object-contain bg-[var(--bg-card)] transition-transform duration-300 group-hover:scale-[1.01]"
                             loading="lazy"
                             onLoad={(e) => {
                               const el = e.currentTarget;
