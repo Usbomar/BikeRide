@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { Ruta } from '../types/ruta';
+import { buildBackupFile, triggerDownloadJson, type BikeRideBackupFile } from '../utils/backup';
 
 const STORAGE_KEY = 'bikeride-rutes';
 const CONFIG_KEY = 'bikeride-config';
@@ -187,6 +188,14 @@ function saveConfig(c: Configuracio) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(c));
 }
 
+export type ImportBackupMode = 'replace' | 'merge';
+
+export interface ImportBackupOptions {
+  mode: ImportBackupMode;
+  /** Si és cert, s’aplica la configuració del fitxer (tema, colors, layouts…). */
+  includeConfig: boolean;
+}
+
 interface RutesContextValue {
   rutes: Ruta[];
   addRuta: (r: Omit<Ruta, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -195,6 +204,10 @@ interface RutesContextValue {
   getRuta: (id: string) => Ruta | undefined;
   config: Configuracio;
   setConfig: (c: Partial<Configuracio>) => void;
+  /** Descarrega un JSON amb totes les rutes (text i imatges en base64) i la configuració actual. */
+  downloadBackup: () => void;
+  /** Importa un fitxer creat amb «Descarregar còpia». */
+  importBackup: (data: BikeRideBackupFile, options: ImportBackupOptions) => void;
 }
 
 const RutesContext = createContext<RutesContextValue | null>(null);
@@ -240,6 +253,32 @@ export function RutesProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const downloadBackup = useCallback(() => {
+    const json = buildBackupFile(rutes, { ...config } as Record<string, unknown>);
+    const name = `bikeride-export-${new Date().toISOString().slice(0, 10)}.json`;
+    triggerDownloadJson(name, json);
+  }, [rutes, config]);
+
+  const importBackup = useCallback(
+    (data: BikeRideBackupFile, options: ImportBackupOptions) => {
+      if (options.mode === 'replace') {
+        persistRutes(data.rutes);
+      } else {
+        const map = new Map(rutes.map((r) => [r.id, r]));
+        for (const r of data.rutes) {
+          map.set(r.id, r);
+        }
+        persistRutes([...map.values()]);
+      }
+      if (options.includeConfig && data.config) {
+        const next = { ...defaultConfig, ...data.config } as Configuracio;
+        setConfigState(next);
+        saveConfig(next);
+      }
+    },
+    [rutes, persistRutes]
+  );
+
   const value = useMemo<RutesContextValue>(
     () => ({
       rutes,
@@ -249,8 +288,10 @@ export function RutesProvider({ children }: { children: ReactNode }) {
       getRuta,
       config,
       setConfig,
+      downloadBackup,
+      importBackup,
     }),
-    [rutes, addRuta, updateRuta, deleteRuta, getRuta, config, setConfig]
+    [rutes, addRuta, updateRuta, deleteRuta, getRuta, config, setConfig, downloadBackup, importBackup]
   );
 
   return <RutesContext.Provider value={value}>{children}</RutesContext.Provider>;

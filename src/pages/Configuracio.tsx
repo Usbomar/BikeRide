@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useRutes } from '../store/useRutes';
 import type {
   Densitat,
@@ -10,7 +11,9 @@ import type {
   DashboardBlocId,
   RankingsBlocId,
   ThemePreset,
+  ImportBackupMode,
 } from '../store/useRutes';
+import { parseBikeRideBackup } from '../utils/backup';
 import { ACCENT_COLORS } from '../constants/colors';
 
 const DENSITAT: { value: Densitat; label: string }[] = [
@@ -60,9 +63,17 @@ const PRESETS: { value: ThemePreset; label: string; desc: string }[] = [
 ];
 
 const DASHBOARD_BLOCS: { id: DashboardBlocId; label: string; desc: string }[] = [
-  { id: 'kpis', label: 'Indicadors clau', desc: 'Km totals, sortides, hores, desnivell, aquest mes, km/sortida.' },
+  {
+    id: 'kpis',
+    label: 'Indicadors clau',
+    desc: 'Resum principal (km acumulats), mètriques compactes, aquest mes vs anterior, distribució per tipus.',
+  },
   { id: 'grafica', label: 'Evolució mensual', desc: 'Gràfica de km per període.' },
-  { id: 'ultimes', label: 'Últimes rutes + accés ràpid', desc: 'Llista de rutes recents i botons d’accions.' },
+  {
+    id: 'ultimes',
+    label: 'Últimes rutes + accés ràpid',
+    desc: 'Últimes sortides amb tipus i enllaços ràpids (nova ruta, llista, rànquings).',
+  },
 ];
 
 const RANKINGS_BLOCS: { id: RankingsBlocId; label: string; desc: string }[] = [
@@ -76,7 +87,44 @@ const RANKINGS_BLOCS: { id: RankingsBlocId; label: string; desc: string }[] = [
 ];
 
 export default function Configuracio() {
-  const { config, setConfig } = useRutes();
+  const { config, setConfig, rutes, downloadBackup, importBackup } = useRutes();
+  const [importMode, setImportMode] = useState<ImportBackupMode>('replace');
+  const [includeConfig, setIncludeConfig] = useState(true);
+  const [backupMsg, setBackupMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const backupFileRef = useRef<HTMLInputElement>(null);
+
+  const onBackupFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    setBackupMsg(null);
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const raw: unknown = JSON.parse(text);
+      const parsed = parseBikeRideBackup(raw);
+      if (!parsed.ok) {
+        setBackupMsg({ kind: 'err', text: parsed.error });
+        return;
+      }
+      const n = parsed.data.rutes.length;
+      if (importMode === 'replace') {
+        const ok = window.confirm(
+          `Substituir les ${rutes.length} rutes locals per les ${n} del fitxer? Les dades actuals desapareixeran en aquest ordinador (fes una exportació abans si en necessites còpia).`
+        );
+        if (!ok) return;
+      }
+      importBackup(parsed.data, { mode: importMode, includeConfig });
+      setBackupMsg({
+        kind: 'ok',
+        text:
+          importMode === 'replace'
+            ? `S’han carregat ${n} rutes${includeConfig ? ' i la configuració' : ''}.`
+            : `S’han fusionat ${n} rutes del fitxer (per id: s’actualitzen si ja existien)${includeConfig ? ' i la configuració' : ''}.`,
+      });
+    } catch {
+      setBackupMsg({ kind: 'err', text: 'No s’ha pogut llegir el fitxer (JSON invàlid o corrupte).' });
+    }
+  };
 
   return (
     <div className="max-w-xl space-y-6">
@@ -468,6 +516,76 @@ export default function Configuracio() {
               );
             })}
         </div>
+      </section>
+
+      <section className="app-card border border-[var(--accent)]/25 bg-[var(--superficie-muted)]">
+        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Còpia de seguretat (JSON)</h2>
+        <p className="text-xs text-[var(--text-muted)] mb-3">
+          Exporta totes les rutes (text, números i imatges en base64 dins del JSON) i la configuració visual.
+          Copia el fitxer a un altre ordinador i importa’l aquí per continuar amb les mateixes dades i aspecte.
+        </p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => {
+              setBackupMsg(null);
+              downloadBackup();
+              setBackupMsg({ kind: 'ok', text: 'S’ha descarregat el fitxer JSON.' });
+            }}
+            className="px-3 py-2 rounded-lg text-sm font-medium text-white bg-[var(--accent)] hover:opacity-90"
+          >
+            Descarregar còpia
+          </button>
+          <input ref={backupFileRef} type="file" accept=".json,application/json" className="hidden" onChange={onBackupFile} />
+          <button
+            type="button"
+            onClick={() => {
+              setBackupMsg(null);
+              backupFileRef.current?.click();
+            }}
+            className="px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-primary)] border border-[var(--superficie)]/35 bg-[var(--bg-card)] hover:bg-[var(--superficie-soft)]"
+          >
+            Importar des d’un fitxer…
+          </button>
+        </div>
+        <div className="space-y-2 mb-3 text-xs">
+          <span className="font-medium text-[var(--text-secondary)]">Mode d’importació:</span>
+          <div className="flex flex-wrap gap-2">
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="radio"
+                name="importMode"
+                checked={importMode === 'replace'}
+                onChange={() => setImportMode('replace')}
+              />
+              Substituir tot (recomanat en un ordinador nou)
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="radio"
+                name="importMode"
+                checked={importMode === 'merge'}
+                onChange={() => setImportMode('merge')}
+              />
+              Fusionar (per id: afegeix o actualitza rutes sense esborrar les altres)
+            </label>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={includeConfig} onChange={(e) => setIncludeConfig(e.target.checked)} />
+            Importar també tema, colors i disposició de blocs
+          </label>
+        </div>
+        {backupMsg && (
+          <p
+            className={`text-xs rounded-lg px-2 py-1.5 ${
+              backupMsg.kind === 'ok'
+                ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200'
+                : 'bg-red-500/15 text-red-800 dark:text-red-200'
+            }`}
+          >
+            {backupMsg.text}
+          </p>
+        )}
       </section>
     </div>
   );

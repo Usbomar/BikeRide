@@ -94,23 +94,23 @@ export default function RutesList() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h1 className="text-xl font-semibold text-[var(--text-primary)]">Rutes</h1>
         <Link
           to="/nova-ruta"
-          className="px-4 py-2 rounded-lg font-medium text-white bg-[var(--accent)] hover:opacity-90 transition-opacity no-underline"
+          className="px-4 py-1.5 rounded-lg font-medium text-white bg-[var(--accent)] hover:opacity-90 transition-opacity no-underline"
         >
           Nova ruta
         </Link>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-4">
+      <div className="flex flex-wrap gap-2 mb-3">
         <label className="flex items-center gap-2 text-sm text-[var(--accent2)]">
           Tipus:
           <select
             value={filtreTipus}
             onChange={(e) => setFiltreTipus(e.target.value)}
-            className="px-2 py-1 border border-[var(--border)] rounded bg-[var(--bg)] text-[var(--text-primary)]"
+            className="px-2 py-0.5 border border-[var(--superficie)]/35 rounded bg-[var(--superficie-muted)] text-[var(--text-primary)]"
           >
             <option value="">Tots</option>
             <option value="carretera">Carretera</option>
@@ -137,9 +137,9 @@ export default function RutesList() {
               key={c.id}
               type="button"
               onClick={() => toggleColumnVisibility(c.id as any)}
-              className={`px-2 py-1 rounded-full border text-xs font-medium transition-colors ${
+              className={`px-2 py-0.5 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${
                 isVisible(c.id as any)
-                  ? 'bg-[var(--accent-soft)] border-[var(--accent)] text-[var(--accent)]'
+                  ? 'bg-[var(--accent-soft)] border-[var(--accent)] text-[var(--accent)] shadow-[inset_0_0_0_1px_var(--accent-soft)]'
                   : 'border-[var(--superficie)]/30 text-[var(--text-muted)] bg-[var(--superficie-muted)] hover:bg-[var(--superficie-soft)]'
               }`}
             >
@@ -152,14 +152,16 @@ export default function RutesList() {
       {ordenades.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)] py-6">Encara no hi ha rutes. Afegeix la primera des de «Nova ruta».</p>
       ) : (
-        <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-card)]">
+        <div className="border border-[var(--superficie)]/25 rounded-xl overflow-hidden bg-[var(--bg-card)] shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
-                <tr className="border-b border-[var(--border)] bg-[var(--superficie-muted)]">
+                <tr className="border-b border-[var(--border)] bg-[linear-gradient(90deg,var(--superficie-muted),var(--accent-soft))]">
                   {isVisible('data') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'data' ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('data')}
                     >
                       Data
@@ -167,7 +169,9 @@ export default function RutesList() {
                   )}
                   {isVisible('nom') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'nom' ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('nom')}
                     >
                       Nom
@@ -175,7 +179,9 @@ export default function RutesList() {
                   )}
                   {isVisible('tipus') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--accent2)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'tipus' ? 'text-[var(--accent2)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('tipus')}
                     >
                       Tipus
@@ -183,7 +189,9 @@ export default function RutesList() {
                   )}
                   {isVisible('zona') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'zona' ? 'text-[var(--superficie)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('zona')}
                     >
                       Comarca
@@ -191,7 +199,9 @@ export default function RutesList() {
                   )}
                   {isVisible('distancia') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'distancia' ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('distancia')}
                     >
                       Km
@@ -199,7 +209,9 @@ export default function RutesList() {
                   )}
                   {isVisible('durada') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'durada' ? 'text-[var(--superficie)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('durada')}
                     >
                       Temps
@@ -207,7 +219,9 @@ export default function RutesList() {
                   )}
                   {isVisible('desnivell') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'desnivell' ? 'text-[var(--accent2)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('desnivell')}
                     >
                       Desnivell
@@ -215,7 +229,9 @@ export default function RutesList() {
                   )}
                   {isVisible('alcadaMaxima') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'alcadaMaxima' ? 'text-[var(--superficie)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('alcadaMaxima')}
                     >
                       Alçada màx.
@@ -223,62 +239,64 @@ export default function RutesList() {
                   )}
                   {isVisible('velocitatMaxima') && (
                     <th
-                      className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer select-none"
+                      className={`px-3 py-1 text-xs font-medium cursor-pointer select-none whitespace-nowrap ${
+                        rutesList.sortBy === 'velocitatMaxima' ? 'text-[var(--accent2)]' : 'text-[var(--text-secondary)]'
+                      }`}
                       onClick={() => toggleSort('velocitatMaxima')}
                     >
                       Velocitat màx.
                     </th>
                   )}
-                  <th className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] w-20"></th>
+                  <th className="px-3 py-1 text-xs font-medium text-[var(--text-secondary)] w-20 whitespace-nowrap"></th>
                 </tr>
               </thead>
               <tbody>
                 {ordenades.map((r) => (
-                  <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg)]/30">
+                  <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--superficie-muted)]/70">
                     {isVisible('data') && (
-                      <td className="px-3 py-2 text-[var(--text-secondary)]">{formatDate(r.data)}</td>
+                      <td className="px-3 py-1 text-[var(--text-secondary)] whitespace-nowrap">{formatDate(r.data)}</td>
                     )}
                     {isVisible('nom') && (
-                      <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{r.nom}</td>
+                      <td className="px-3 py-1 font-medium text-[var(--text-primary)] whitespace-nowrap">{r.nom}</td>
                     )}
                     {isVisible('tipus') && (
-                      <td className="px-3 py-2 text-[var(--text-muted)]">{r.tipus ?? '—'}</td>
+                      <td className="px-3 py-1 text-[var(--accent2)]/90 whitespace-nowrap">{r.tipus ?? '—'}</td>
                     )}
                     {isVisible('zona') && (
-                      <td className="px-3 py-2 text-[var(--text-secondary)]">{r.zona ?? '—'}</td>
+                      <td className="px-3 py-1 text-[var(--superficie)]/90 whitespace-nowrap">{r.zona ?? '—'}</td>
                     )}
                     {isVisible('distancia') && (
-                      <td className="px-3 py-2 text-[var(--text-primary)]">
+                      <td className="px-3 py-1 text-[var(--accent)] font-medium whitespace-nowrap">
                         {r.distanciaKm != null ? formatKm(r.distanciaKm) : '—'}
                       </td>
                     )}
                     {isVisible('durada') && (
-                      <td className="px-3 py-2 text-[var(--text-secondary)]">
+                      <td className="px-3 py-1 text-[var(--text-secondary)] whitespace-nowrap">
                         {r.duradaMinuts != null
                           ? `${Math.floor(r.duradaMinuts / 60)}h ${r.duradaMinuts % 60}min`
                           : '—'}
                       </td>
                     )}
                     {isVisible('desnivell') && (
-                      <td className="px-3 py-2 text-[var(--text-secondary)]">
+                      <td className="px-3 py-1 text-[var(--accent2)]/85 whitespace-nowrap">
                         {r.desnivellMetres != null ? `${r.desnivellMetres} m` : '—'}
                       </td>
                     )}
                     {isVisible('alcadaMaxima') && (
-                      <td className="px-3 py-2 text-[var(--text-secondary)]">
+                      <td className="px-3 py-1 text-[var(--superficie)]/90 whitespace-nowrap">
                         {r.alcadaMaximaMetres != null ? `${r.alcadaMaximaMetres} m` : '—'}
                       </td>
                     )}
                     {isVisible('velocitatMaxima') && (
-                      <td className="px-3 py-2 text-[var(--text-secondary)]">
+                      <td className="px-3 py-1 text-[var(--accent2)]/85 whitespace-nowrap">
                         {r.velocitatMaxima != null ? `${r.velocitatMaxima.toFixed(1)} km/h` : '—'}
                       </td>
                     )}
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-3">
+                    <td className="px-3 py-1 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
                         <Link
                           to={`/rutes/${r.id}/editar`}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors"
                           title="Editar ruta"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -293,7 +311,7 @@ export default function RutesList() {
                               deleteRuta(r.id);
                             }
                           }}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--text-secondary)] hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--text-secondary)] hover:text-rose-600 hover:bg-rose-50 transition-colors"
                           title="Eliminar ruta"
                         >
                           <svg
@@ -316,7 +334,7 @@ export default function RutesList() {
                         </button>
                         <Link
                           to={`/rutes/${r.id}`}
-                          className="text-sm text-[var(--accent)] hover:underline"
+                          className="text-xs text-[var(--accent)] hover:text-[var(--accent2)] hover:underline"
                         >
                           Detall
                         </Link>
