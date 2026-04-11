@@ -1,16 +1,29 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRutes } from '../store/useRutes';
+import type { Ruta } from '../types/ruta';
 import { COMARQUES_SVG } from '../data/comarques-svg';
 
-type StatsComarca = { count: number; km: number; desnivell: number };
+function normZona(z: string): string {
+  return z.trim().toLowerCase();
+}
 
-function getStatsPerNom(map: Map<string, StatsComarca>, nomComarca: string): StatsComarca | undefined {
-  const n = nomComarca.toLowerCase();
-  for (const [k, v] of map) {
-    if (k.trim().toLowerCase() === n) return v;
+function statsForNom(
+  statsPerComarca: Map<string, { count: number; km: number; desnivell: number }>,
+  nomComarca: string
+): { count: number; km: number; desnivell: number } | undefined {
+  const direct = statsPerComarca.get(nomComarca);
+  if (direct) return direct;
+  const n = normZona(nomComarca);
+  for (const [k, v] of statsPerComarca) {
+    if (normZona(k) === n) return v;
   }
   return undefined;
+}
+
+function rutesPerComarca(rutes: Ruta[], nomComarca: string) {
+  const n = normZona(nomComarca);
+  return rutes.filter((r) => r.zona && normZona(r.zona) === n);
 }
 
 function IconCadenat() {
@@ -24,11 +37,11 @@ function IconCadenat() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="shrink-0 text-[var(--text-muted)]"
+      className="inline-block shrink-0 opacity-70"
       aria-hidden
     >
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      <rect x="5" y="11" width="14" height="10" rx="1" />
+      <path d="M7 11V8a5 5 0 0 1 10 0v3" />
     </svg>
   );
 }
@@ -41,9 +54,7 @@ export default function Comarques() {
     const set = new Set<string>();
     rutes.forEach((r) => {
       if (r.zona) {
-        const match = COMARQUES_SVG.find(
-          (c) => c.nom.toLowerCase() === r.zona!.trim().toLowerCase()
-        );
+        const match = COMARQUES_SVG.find((c) => c.nom.toLowerCase() === r.zona!.trim().toLowerCase());
         if (match) set.add(match.id);
       }
     });
@@ -51,7 +62,7 @@ export default function Comarques() {
   }, [rutes]);
 
   const statsPerComarca = useMemo(() => {
-    const map = new Map<string, StatsComarca>();
+    const map = new Map<string, { count: number; km: number; desnivell: number }>();
     rutes.forEach((r) => {
       const key = r.zona?.trim() || '';
       if (!key) return;
@@ -70,40 +81,50 @@ export default function Comarques() {
     [statsPerComarca]
   );
 
-  const seleccio = useMemo(
+  const comarcaSeleccionadaMeta = useMemo(
     () => (comarcaSeleccionada ? COMARQUES_SVG.find((c) => c.id === comarcaSeleccionada) : null),
     [comarcaSeleccionada]
   );
 
-  const statsSeleccio = seleccio ? getStatsPerNom(statsPerComarca, seleccio.nom) : undefined;
+  const rutesSeleccionades = useMemo(() => {
+    if (!comarcaSeleccionadaMeta) return [];
+    return rutesPerComarca(rutes, comarcaSeleccionadaMeta.nom).sort(
+      (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
+    );
+  }, [rutes, comarcaSeleccionadaMeta]);
 
-  const rutesSeleccio = useMemo(() => {
-    if (!seleccio) return [];
-    const nom = seleccio.nom.toLowerCase();
-    return rutes
-      .filter((r) => r.zona?.trim().toLowerCase() === nom)
-      .slice()
-      .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
-  }, [rutes, seleccio]);
+  const statsSeleccionada = comarcaSeleccionadaMeta
+    ? statsForNom(statsPerComarca, comarcaSeleccionadaMeta.nom)
+    : undefined;
+
+  const cardsOrdenades = useMemo(() => {
+    const visitadesList = COMARQUES_SVG.filter((c) => visitades.has(c.id)).sort((a, b) => {
+      const ca = statsForNom(statsPerComarca, a.nom)?.count ?? 0;
+      const cb = statsForNom(statsPerComarca, b.nom)?.count ?? 0;
+      return cb - ca;
+    });
+    const noVisitades = COMARQUES_SVG.filter((c) => !visitades.has(c.id)).sort((a, b) =>
+      a.nom.localeCompare(b.nom, 'ca')
+    );
+    return [...visitadesList, ...noVisitades];
+  }, [visitades, statsPerComarca]);
 
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)]">
+      <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
         Territori explorat
       </p>
-      <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mt-1 mb-1">
-        Comarques
-      </h1>
+      <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">Comarques</h1>
       <p className="text-sm text-[var(--text-secondary)] mb-6">
         {visitades.size} comarques explorades de {COMARQUES_SVG.length}
       </p>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-        <div className="w-full max-w-lg shrink-0 mx-auto lg:mx-0">
-          <svg viewBox="0 0 400 500" className="w-full h-auto" role="img" aria-label="Mapa de comarques">
+      <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+        <div className="w-full max-w-lg flex-1 mx-auto lg:mx-0">
+          <svg viewBox="0 0 400 500" className="w-full max-w-lg mx-auto">
             {COMARQUES_SVG.map((comarca) => {
               const isVisited = visitades.has(comarca.id);
-              const stats = getStatsPerNom(statsPerComarca, comarca.nom);
+              const stats = statsForNom(statsPerComarca, comarca.nom);
               const ratio = stats ? stats.count / maxCount : 0;
               const fillColor = isVisited
                 ? `rgba(29, 158, 117, ${0.25 + ratio * 0.65})`
@@ -114,10 +135,16 @@ export default function Comarques() {
                   key={comarca.id}
                   className="cursor-pointer group"
                   onClick={() =>
-                    setComarcaSeleccionada(
-                      comarcaSeleccionada === comarca.id ? null : comarca.id
-                    )
+                    setComarcaSeleccionada(comarcaSeleccionada === comarca.id ? null : comarca.id)
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setComarcaSeleccionada(comarcaSeleccionada === comarca.id ? null : comarca.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <path
                     d={comarca.path}
@@ -134,6 +161,7 @@ export default function Comarques() {
                       textAnchor="middle"
                       fill={ratio > 0.5 ? '#085041' : '#0F6E56'}
                       fontWeight={500}
+                      className="pointer-events-none select-none"
                     >
                       {stats.count}
                     </text>
@@ -144,95 +172,81 @@ export default function Comarques() {
           </svg>
         </div>
 
-        <div className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
-          {seleccio ? (
+        <div className="w-full min-w-0 flex-1 lg:max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 lg:sticky lg:top-24">
+          {!comarcaSeleccionadaMeta ? (
+            <p className="text-sm text-[var(--text-muted)]">Clica una comarca per veure el detall</p>
+          ) : (
             <>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">{seleccio.nom}</h2>
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div>
-                  <div className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Sortides</div>
-                  <div className="text-xl font-bold text-[var(--accent)] tabular-nums">
-                    {statsSeleccio?.count ?? 0}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+                {comarcaSeleccionadaMeta.nom}
+              </h2>
+              {statsSeleccionada && (
+                <div className="mb-4 grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Sortides</p>
+                    <p className="text-xl font-bold text-[var(--accent)] tabular-nums">{statsSeleccionada.count}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Km</p>
+                    <p className="text-xl font-bold text-[var(--text-primary)] tabular-nums">
+                      {statsSeleccionada.km.toFixed(1)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Desnivell</p>
+                    <p className="text-xl font-bold text-[var(--text-primary)] tabular-nums">
+                      {statsSeleccionada.desnivell}
+                    </p>
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Km totals</div>
-                  <div className="text-xl font-bold text-[var(--text-primary)] tabular-nums">
-                    {(statsSeleccio?.km ?? 0).toFixed(1)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Desnivell</div>
-                  <div className="text-xl font-bold text-[var(--text-primary)] tabular-nums">
-                    {statsSeleccio?.desnivell ?? 0} m
-                  </div>
-                </div>
-              </div>
+              )}
               <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">Rutes</p>
-              {rutesSeleccio.length === 0 ? (
-                <p className="text-sm text-[var(--text-muted)] m-0">Cap ruta amb aquesta comarca.</p>
-              ) : (
-                <ul className="space-y-2 m-0 p-0 list-none">
-                  {rutesSeleccio.map((r) => (
-                    <li key={r.id}>
+              <ul className="m-0 max-h-64 list-none space-y-2 overflow-y-auto p-0">
+                {rutesSeleccionades.length === 0 ? (
+                  <li className="text-xs text-[var(--text-muted)]">Sense rutes en aquesta comarca.</li>
+                ) : (
+                  rutesSeleccionades.map((ruta) => (
+                    <li key={ruta.id}>
                       <Link
-                        to={`/rutes/${r.id}`}
-                        className="flex flex-wrap items-baseline justify-between gap-2 text-sm no-underline hover:underline"
+                        to={`/rutes/${ruta.id}`}
+                        className="flex flex-wrap items-baseline justify-between gap-2 text-sm text-[var(--accent)] no-underline hover:underline"
                       >
-                        <span className="font-medium text-[var(--accent)]">{r.nom}</span>
-                        <span className="text-xs text-[var(--text-muted)] tabular-nums">
-                          {new Date(r.data).toLocaleDateString('ca-ES', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}{' '}
-                          · {r.distanciaKm != null ? `${r.distanciaKm.toFixed(1)} km` : '—'}
+                        <span className="font-medium text-[var(--text-primary)]">{ruta.nom}</span>
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {new Date(ruta.data).toLocaleDateString('ca-ES')} ·{' '}
+                          {ruta.distanciaKm != null ? `${ruta.distanciaKm.toFixed(1)} km` : '—'}
                         </span>
                       </Link>
                     </li>
-                  ))}
-                </ul>
-              )}
+                  ))
+                )}
+              </ul>
             </>
-          ) : (
-            <p className="text-sm text-[var(--text-muted)]">Clica una comarca per veure el detall</p>
           )}
         </div>
       </div>
 
-      <section className="mt-10">
+      <section>
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
           Comarques explorades · {visitades.size} de {COMARQUES_SVG.length}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {COMARQUES_SVG.map((comarca) => {
-            const isVisited = visitades.has(comarca.id);
-            const stats = getStatsPerNom(statsPerComarca, comarca.nom);
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          {cardsOrdenades.map((comarca) => {
+            const visited = visitades.has(comarca.id);
+            const stats = statsForNom(statsPerComarca, comarca.nom);
             const ratio = stats ? stats.count / maxCount : 0;
 
-            if (isVisited && stats) {
+            if (!visited) {
               return (
                 <div
                   key={comarca.id}
-                  className="rounded-lg border border-[var(--border)] p-3 overflow-hidden"
-                  style={{
-                    backgroundColor: `rgba(29, 158, 117, ${0.05 + ratio * 0.1})`,
-                    borderLeftWidth: 3,
-                    borderLeftStyle: 'solid',
-                    borderLeftColor: `color-mix(in srgb, var(--accent) ${Math.round(45 + ratio * 55)}%, transparent)`,
-                  }}
+                  className="rounded-lg border border-[var(--border)] bg-[var(--superficie-muted)]/40 p-3 opacity-50"
                 >
-                  <div className="text-sm font-semibold text-[var(--text-primary)] mb-1">{comarca.nom}</div>
-                  <div className="text-lg font-bold text-[var(--accent)] tabular-nums mb-1">{stats.count}</div>
-                  <div className="text-xs text-[var(--text-secondary)] mb-2">
-                    {stats.km.toFixed(1)} km · {stats.desnivell} m desn.
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <span className="text-sm font-medium text-[var(--text-muted)]">{comarca.nom}</span>
+                    <IconCadenat />
                   </div>
-                  <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-[var(--accent)]"
-                      style={{ width: `${ratio * 100}%` }}
-                    />
-                  </div>
+                  <p className="text-xs text-[var(--text-muted)]">Encara no explorada</p>
                 </div>
               );
             }
@@ -240,13 +254,28 @@ export default function Comarques() {
             return (
               <div
                 key={comarca.id}
-                className="rounded-lg border border-[var(--border)] bg-[var(--superficie-muted)]/50 p-3 opacity-50"
+                className="rounded-lg border border-[var(--border)] p-3 transition-shadow hover:shadow-sm"
+                style={{
+                  backgroundColor: `rgba(29, 158, 117, ${0.05 + ratio * 0.1})`,
+                  borderLeftWidth: 3,
+                  borderLeftColor: `color-mix(in srgb, var(--accent) ${Math.round(40 + ratio * 60)}%, transparent)`,
+                }}
               >
-                <div className="flex items-start gap-2 mb-2">
-                  <IconCadenat />
-                  <div className="text-sm font-medium text-[var(--text-muted)]">{comarca.nom}</div>
-                </div>
-                <p className="text-xs text-[var(--text-muted)] m-0">Encara no explorada</p>
+                <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">{comarca.nom}</p>
+                {stats && (
+                  <>
+                    <p className="mb-2 text-2xl font-bold text-[var(--accent)] tabular-nums">{stats.count}</p>
+                    <p className="mb-2 text-xs text-[var(--text-secondary)]">
+                      {stats.km.toFixed(1)} km · {stats.desnivell} m desn.
+                    </p>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-[var(--border)]">
+                      <div
+                        className="h-full rounded-full bg-[var(--accent)]"
+                        style={{ width: `${ratio * 100}%` }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}

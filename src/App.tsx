@@ -11,6 +11,8 @@ import Rankings from './pages/Rankings';
 import Configuracio from './pages/Configuracio';
 import Album from './pages/Album';
 import Mapa from './pages/Mapa';
+import Comarques from './pages/Comarques';
+import AnyVsAny from './pages/AnyVsAny';
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
               <Route path="informes" element={<Informes />} />
               <Route path="rankings" element={<Rankings />} />
               <Route path="mapa" element={<Mapa />} />
+              <Route path="comarques" element={<Comarques />} />
+              <Route path="any-vs-any" element={<AnyVsAny />} />
               <Route path="album" element={<Album />} />
               <Route path="configuracio" element={<Configuracio />} />
             </Route>

@@ -7,6 +7,8 @@ const nav = [
   { to: '/informes', label: 'Informes' },
   { to: '/rankings', label: 'Rànquings' },
   { to: '/mapa', label: 'Mapa' },
+  { to: '/comarques', label: 'Comarques' },
+  { to: '/any-vs-any', label: 'Any vs Any' },
   { to: '/album', label: 'Àlbum' },
   { to: '/configuracio', label: 'Configuració' },
 ];
