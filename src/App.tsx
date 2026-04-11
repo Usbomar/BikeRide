@@ -13,6 +13,7 @@ import Album from './pages/Album';
 import Mapa from './pages/Mapa';
 import Comarques from './pages/Comarques';
 import AnyVsAny from './pages/AnyVsAny';
+import Reptes from './pages/Reptes';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="mapa" element={<Mapa />} />
               <Route path="comarques" element={<Comarques />} />
               <Route path="any-vs-any" element={<AnyVsAny />} />
+              <Route path="reptes" element={<Reptes />} />
               <Route path="album" element={<Album />} />
               <Route path="configuracio" element={<Configuracio />} />
             </Route>

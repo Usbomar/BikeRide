@@ -9,6 +9,7 @@ const nav = [
   { to: '/mapa', label: 'Mapa' },
   { to: '/comarques', label: 'Comarques' },
   { to: '/any-vs-any', label: 'Any vs Any' },
+  { to: '/reptes', label: 'Reptes' },
   { to: '/album', label: 'Àlbum' },
   { to: '/configuracio', label: 'Configuració' },
 ];
