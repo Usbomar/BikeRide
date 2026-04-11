@@ -14,6 +14,8 @@ import Mapa from './pages/Mapa';
 import Comarques from './pages/Comarques';
 import AnyVsAny from './pages/AnyVsAny';
 import Reptes from './pages/Reptes';
+import Badges from './pages/Badges';
+import Comparador from './pages/Comparador';
 
 export default function App() {
   return (
@@ -33,6 +35,8 @@ export default function App() {
               <Route path="comarques" element={<Comarques />} />
               <Route path="any-vs-any" element={<AnyVsAny />} />
               <Route path="reptes" element={<Reptes />} />
+              <Route path="badges" element={<Badges />} />
+              <Route path="comparador" element={<Comparador />} />
               <Route path="album" element={<Album />} />
               <Route path="configuracio" element={<Configuracio />} />
             </Route>

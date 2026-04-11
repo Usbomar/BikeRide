@@ -10,6 +10,8 @@ const nav = [
   { to: '/comarques', label: 'Comarques' },
   { to: '/any-vs-any', label: 'Any vs Any' },
   { to: '/reptes', label: 'Reptes' },
+  { to: '/badges', label: 'Badges' },
+  { to: '/comparador', label: 'Comparador' },
   { to: '/album', label: 'Àlbum' },
   { to: '/configuracio', label: 'Configuració' },
 ];
