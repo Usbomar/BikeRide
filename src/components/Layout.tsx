@@ -6,6 +6,7 @@ const nav = [
   { to: '/nova-ruta', label: 'Nova ruta' },
   { to: '/informes', label: 'Informes' },
   { to: '/rankings', label: 'Rànquings' },
+  { to: '/mapa', label: 'Mapa' },
   { to: '/album', label: 'Àlbum' },
   { to: '/configuracio', label: 'Configuració' },
 ];

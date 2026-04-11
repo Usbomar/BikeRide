@@ -10,6 +10,7 @@ import Informes from './pages/Informes';
 import Rankings from './pages/Rankings';
 import Configuracio from './pages/Configuracio';
 import Album from './pages/Album';
+import Mapa from './pages/Mapa';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="rutes/:id/editar" element={<RutaForm />} />
               <Route path="informes" element={<Informes />} />
               <Route path="rankings" element={<Rankings />} />
+              <Route path="mapa" element={<Mapa />} />
               <Route path="album" element={<Album />} />
               <Route path="configuracio" element={<Configuracio />} />
             </Route>
