@@ -96,13 +96,12 @@ export default function AnyVsAny() {
     };
   }, [rutes, anyB]);
 
-  const maxKm = Math.max(totalsA.km, totalsB.km, 1);
-  const maxDesn = Math.max(totalsA.desnivell, totalsB.desnivell, 1);
-  const maxSort = Math.max(totalsA.sortides, totalsB.sortides, 1);
-  const maxHores = Math.max(totalsA.hores, totalsB.hores, 1);
-
-  const dadesRadar = useMemo(
-    () => [
+  const dadesRadar = useMemo(() => {
+    const maxKm = Math.max(totalsA.km, totalsB.km, 1);
+    const maxDesn = Math.max(totalsA.desnivell, totalsB.desnivell, 1);
+    const maxSort = Math.max(totalsA.sortides, totalsB.sortides, 1);
+    const maxHores = Math.max(totalsA.hores, totalsB.hores, 1);
+    return [
       {
         metric: 'Km',
         A: Math.round((totalsA.km / maxKm) * 100),
@@ -123,9 +122,8 @@ export default function AnyVsAny() {
         A: Math.round((totalsA.hores / maxHores) * 100),
         B: Math.round((totalsB.hores / maxHores) * 100),
       },
-    ],
-    [totalsA, totalsB, maxKm, maxDesn, maxSort, maxHores]
-  );
+    ];
+  }, [totalsA, totalsB]);
 
   const kpis = [
     { label: 'Km totals', a: totalsA.km, b: totalsB.km, unit: 'km', accent: true },
