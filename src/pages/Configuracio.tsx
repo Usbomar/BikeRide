@@ -82,7 +82,6 @@ const RANKINGS_BLOCS: { id: RankingsBlocId; label: string; desc: string }[] = [
   { id: 'principals', label: 'Rànquings principals', desc: 'Top 10 distància, desnivell i durada.' },
   { id: 'records', label: 'Rècords personals', desc: 'Velocitat màxima i alçada màxima amb enllaç a la ruta.' },
   { id: 'comarques', label: 'Comarques', desc: 'Gràfic de sectors i taula per comarques.' },
-  { id: 'topBarres', label: 'Top barres distància', desc: 'Gràfica de barres amb les 6 rutes més llargues.' },
   { id: 'altres', label: 'Altres rànquings', desc: 'Top velocitat màxima i alçada màxima.' },
 ];
 

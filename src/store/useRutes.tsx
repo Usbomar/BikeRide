@@ -64,7 +64,6 @@ export type RankingsBlocId =
   | 'principals'
   | 'records'
   | 'comarques'
-  | 'topBarres'
   | 'altres';
 
 export interface RankingsBlocLayout {
@@ -153,8 +152,7 @@ const defaultConfig: Configuracio = {
       { id: 'principals', ordre: 3, visible: true },
       { id: 'records', ordre: 4, visible: true },
       { id: 'comarques', ordre: 5, visible: true },
-      { id: 'topBarres', ordre: 6, visible: true },
-      { id: 'altres', ordre: 7, visible: true },
+      { id: 'altres', ordre: 6, visible: true },
     ],
   },
   rutesList: {
@@ -178,7 +176,15 @@ function loadConfig(): Configuracio {
   try {
     const s = localStorage.getItem(CONFIG_KEY);
     if (!s) return defaultConfig;
-    return { ...defaultConfig, ...JSON.parse(s) };
+    const parsed = JSON.parse(s) as Partial<Configuracio>;
+    const merged = { ...defaultConfig, ...parsed };
+    if (merged.rankingsLayout?.blocs) {
+      merged.rankingsLayout = {
+        ...merged.rankingsLayout,
+        blocs: merged.rankingsLayout.blocs.filter((b) => (b.id as string) !== 'topBarres'),
+      };
+    }
+    return merged;
   } catch {
     return defaultConfig;
   }

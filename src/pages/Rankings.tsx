@@ -2,13 +2,8 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useRutes } from '../store/useRutes';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
   PieChart,
   Pie,
   Cell,
@@ -21,19 +16,112 @@ import { formatKm } from '../utils/format';
 
 const COLORS = ['var(--accent)', 'var(--accent2)', 'var(--superficie)', '#059669', '#0f766e', '#64748b'];
 
-function PodiumItem({ ruta, value, format, position }: { ruta: Ruta; value: number; format: (n: number) => string; position: 1 | 2 | 3 }) {
-  const heights = { 1: 'h-16', 2: 'h-14', 3: 'h-12' };
-  const labels = { 1: '1r', 2: '2n', 3: '3r' };
+const PODIUM_HEIGHTS: Record<1 | 2 | 3, string> = {
+  1: 'min-h-[180px]',
+  2: 'min-h-[120px]',
+  3: 'min-h-[100px]',
+};
+
+function CrownIcon() {
   return (
-    <div className="flex flex-col items-center flex-1">
-      <Link to={`/rutes/${ruta.id}`} className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--accent)] no-underline truncate max-w-full text-center mb-1">
-        {ruta.nom}
-      </Link>
-      <div className={`w-full max-w-[80px] rounded-t-lg bg-[var(--accent-soft)] flex items-end justify-center ${heights[position]}`}>
-        <span className="text-sm font-bold text-[var(--accent)] mb-0.5">{format(value)}</span>
+    <svg
+      className="mb-1 shrink-0 text-white"
+      width="48"
+      height="28"
+      viewBox="0 0 48 28"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M4 22 L12 6 L18 12 L24 4 L30 12 L36 6 L44 22"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function PodiumItem({
+  ruta,
+  value,
+  format,
+  position,
+}: {
+  ruta: Ruta;
+  value: number;
+  format: (n: number) => string;
+  position: 1 | 2 | 3;
+}) {
+  const labels = { 1: '1r', 2: '2n', 3: '3r' } as const;
+  const h = PODIUM_HEIGHTS[position];
+
+  if (position === 1) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-end min-w-0 max-w-[220px]">
+        <CrownIcon />
+        <div
+          className={`flex w-full flex-col items-center justify-end rounded-t-2xl bg-[var(--accent)] px-4 pb-5 pt-3 text-center text-white shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] ${h}`}
+        >
+          <span className="text-4xl font-bold leading-none">{labels[1]}</span>
+          <Link
+            to={`/rutes/${ruta.id}`}
+            className="mt-2 w-full truncate text-lg font-bold text-white no-underline hover:underline"
+          >
+            {ruta.nom}
+          </Link>
+          <span className="mt-2 text-3xl font-black tabular-nums">{format(value)}</span>
+        </div>
       </div>
-      <span className="text-xs font-semibold text-[var(--text-muted)] mt-1">{labels[position]}</span>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-end min-w-0 max-w-[160px]">
+      <div
+        className={`flex w-full flex-col items-center justify-end rounded-t-xl bg-[var(--accent-soft)] px-3 pb-4 pt-3 text-center ${h}`}
+      >
+        <span className="text-2xl font-bold text-[var(--accent)]">{labels[position]}</span>
+        <Link
+          to={`/rutes/${ruta.id}`}
+          className="mt-1.5 w-full truncate text-sm font-medium text-[var(--accent)] no-underline hover:underline"
+        >
+          {ruta.nom}
+        </Link>
+        <span className="mt-2 text-xl font-bold tabular-nums text-[var(--accent)]">{format(value)}</span>
+      </div>
     </div>
+  );
+}
+
+function IconLightning() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-[var(--accent)]">
+      <path
+        d="M13 2L4 14h7l-1 8 10-12h-6l3-8z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function IconMountain() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-[var(--accent)]">
+      <path
+        d="M3 20 L10 8 L14 14 L18 6 L21 20 Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
   );
 }
 
@@ -51,41 +139,114 @@ export default function Rankings() {
     return totalHores(filtrarRutesAquestMesFinsAvui(rutes, ara));
   }, [rutes]);
 
-  const perDistancia = useMemo(() => [...rutes].filter((r) => r.distanciaKm != null && r.distanciaKm > 0).sort((a, b) => (b.distanciaKm ?? 0) - (a.distanciaKm ?? 0)).slice(0, 10), [rutes]);
-  const perDesnivell = useMemo(() => [...rutes].filter((r) => r.desnivellMetres != null && r.desnivellMetres > 0).sort((a, b) => (b.desnivellMetres ?? 0) - (a.desnivellMetres ?? 0)).slice(0, 10), [rutes]);
-  const perDurada = useMemo(() => [...rutes].filter((r) => r.duradaMinuts != null && r.duradaMinuts > 0).sort((a, b) => (b.duradaMinuts ?? 0) - (a.duradaMinuts ?? 0)).slice(0, 10), [rutes]);
-  const perVelocitatMax = useMemo(() => [...rutes].filter((r) => r.velocitatMaxima != null && r.velocitatMaxima > 0).sort((a, b) => (b.velocitatMaxima ?? 0) - (a.velocitatMaxima ?? 0)).slice(0, 10), [rutes]);
-  const perAlcada = useMemo(() => [...rutes].filter((r) => r.alcadaMaximaMetres != null && r.alcadaMaximaMetres > 0).sort((a, b) => (b.alcadaMaximaMetres ?? 0) - (a.alcadaMaximaMetres ?? 0)).slice(0, 10), [rutes]);
+  const perDistancia = useMemo(
+    () =>
+      [...rutes]
+        .filter((r) => r.distanciaKm != null && r.distanciaKm > 0)
+        .sort((a, b) => (b.distanciaKm ?? 0) - (a.distanciaKm ?? 0))
+        .slice(0, 10),
+    [rutes]
+  );
+  const perDesnivell = useMemo(
+    () =>
+      [...rutes]
+        .filter((r) => r.desnivellMetres != null && r.desnivellMetres > 0)
+        .sort((a, b) => (b.desnivellMetres ?? 0) - (a.desnivellMetres ?? 0))
+        .slice(0, 10),
+    [rutes]
+  );
+  const perDurada = useMemo(
+    () =>
+      [...rutes]
+        .filter((r) => r.duradaMinuts != null && r.duradaMinuts > 0)
+        .sort((a, b) => (b.duradaMinuts ?? 0) - (a.duradaMinuts ?? 0))
+        .slice(0, 10),
+    [rutes]
+  );
+  const perVelocitatMax = useMemo(
+    () =>
+      [...rutes]
+        .filter((r) => r.velocitatMaxima != null && r.velocitatMaxima > 0)
+        .sort((a, b) => (b.velocitatMaxima ?? 0) - (a.velocitatMaxima ?? 0))
+        .slice(0, 10),
+    [rutes]
+  );
+  const perAlcada = useMemo(
+    () =>
+      [...rutes]
+        .filter((r) => r.alcadaMaximaMetres != null && r.alcadaMaximaMetres > 0)
+        .sort((a, b) => (b.alcadaMaximaMetres ?? 0) - (a.alcadaMaximaMetres ?? 0))
+        .slice(0, 10),
+    [rutes]
+  );
 
   const maxKm = perDistancia[0]?.distanciaKm ?? 1;
   const maxDesnivell = perDesnivell[0]?.desnivellMetres ?? 1;
   const maxDurada = perDurada[0]?.duradaMinuts ?? 1;
 
-  const Block = ({ title, items, format, valueKey, maxVal }: { title: string; items: Ruta[]; format: (r: Ruta) => string; valueKey: 'distanciaKm' | 'desnivellMetres' | 'duradaMinuts' | 'velocitatMaxima' | 'alcadaMaximaMetres'; maxVal: number }) => (
+  const Block = ({
+    title,
+    items,
+    format,
+    valueKey,
+    maxVal,
+  }: {
+    title: string;
+    items: Ruta[];
+    format: (r: Ruta) => string;
+    valueKey: 'distanciaKm' | 'desnivellMetres' | 'duradaMinuts' | 'velocitatMaxima' | 'alcadaMaximaMetres';
+    maxVal: number;
+  }) => (
     <div className="app-card">
-      <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{title}</h2>
+      <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">{title}</h2>
       {items.length === 0 ? (
         <p className="text-xs text-[var(--text-muted)]">Sense dades</p>
       ) : (
-        <ol className="space-y-2">
-          {items.map((r, i) => {
+        <ol className="space-y-3 list-none m-0 p-0">
+          {items.flatMap((r, i) => {
             const val = r[valueKey] as number | undefined;
             const num = typeof val === 'number' ? val : 0;
-            const pct = maxVal > 0 ? (num / maxVal) * 100 : 0;
-            return (
-              <li key={r.id} className="flex items-center gap-2">
-                <span className="text-[var(--text-muted)] font-medium w-5 text-xs">{i + 1}.</span>
-                <div className="flex-1 min-w-0">
-                  <Link to={`/rutes/${r.id}`} className="text-[var(--text-primary)] hover:text-[var(--accent)] no-underline truncate block text-sm font-medium">
+            const pct = i === 0 ? 100 : maxVal > 0 ? (num / maxVal) * 100 : 0;
+            const pos = i + 1;
+            const rankClass =
+              pos === 1
+                ? 'text-2xl font-black text-[var(--accent)] tabular-nums w-9 shrink-0 text-right'
+                : pos <= 3
+                  ? 'text-lg font-bold text-[var(--accent)]/70 tabular-nums w-9 shrink-0 text-right'
+                  : 'text-sm text-[var(--text-muted)] tabular-nums w-9 shrink-0 text-right';
+
+            const row = (
+              <li key={r.id} className="flex items-center gap-3">
+                <span className={rankClass}>{pos}</span>
+                <div className="min-w-0 flex-1">
+                  <Link
+                    to={`/rutes/${r.id}`}
+                    className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent)] no-underline truncate block"
+                  >
                     {r.nom}
                   </Link>
-                  <div className="h-1 rounded-full bg-[var(--border)] overflow-hidden mt-0.5">
-                    <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${pct}%` }} />
+                  <div className="mt-1.5 h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent2)]"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </div>
-                <span className="text-[var(--accent)] font-semibold shrink-0 text-xs">{format(r)}</span>
+                <span className="text-sm font-bold text-[var(--accent)] shrink-0 tabular-nums">{format(r)}</span>
               </li>
             );
+
+            if (i === 2 && items.length > 3) {
+              return [
+                row,
+                <li key="__altres__" className="flex items-center gap-2 list-none py-1" aria-hidden>
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Altres</span>
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                </li>,
+              ];
+            }
+            return [row];
           })}
         </ol>
       )}
@@ -98,10 +259,6 @@ export default function Rankings() {
     km: c.km,
     desnivell: c.desnivell,
   }));
-  const barDataTop = perDistancia.slice(0, 6).map((r) => ({
-    nom: r.nom.length > 10 ? r.nom.slice(0, 10) + '…' : r.nom,
-    km: r.distanciaKm ?? 0,
-  }));
 
   const blocsOrdenats = config.rankingsLayout.blocs
     .slice()
@@ -112,7 +269,7 @@ export default function Rankings() {
     if (id === 'resum') {
       return (
         <section key="resum">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Resum global</h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Resum global</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <div className="app-card border-l-4 border-l-[var(--accent)]">
               <div className="text-xl font-bold text-[var(--accent)] tabular-nums">
@@ -190,28 +347,34 @@ export default function Rankings() {
     if (id === 'podis' && perDistancia.length >= 3) {
       return (
         <section key="podis">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
-            Podis · Top 3 distància
-          </h2>
-          <div className="flex items-end justify-center gap-3 md:gap-6 app-card py-4">
-            <PodiumItem
-              ruta={perDistancia[1]}
-              value={perDistancia[1].distanciaKm ?? 0}
-              format={(n) => formatKm(n)}
-              position={2}
-            />
-            <PodiumItem
-              ruta={perDistancia[0]}
-              value={perDistancia[0].distanciaKm ?? 0}
-              format={(n) => formatKm(n)}
-              position={1}
-            />
-            <PodiumItem
-              ruta={perDistancia[2]}
-              value={perDistancia[2].distanciaKm ?? 0}
-              format={(n) => formatKm(n)}
-              position={3}
-            />
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Podis · Top 3 distància</h2>
+          <div
+            className="rounded-2xl px-4 py-6 md:px-8 md:py-8"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 3%, transparent) 0%, transparent 65%)',
+            }}
+          >
+            <div className="flex items-end justify-center gap-2 md:gap-6 max-w-3xl mx-auto">
+              <PodiumItem
+                ruta={perDistancia[1]}
+                value={perDistancia[1].distanciaKm ?? 0}
+                format={(n) => formatKm(n)}
+                position={2}
+              />
+              <PodiumItem
+                ruta={perDistancia[0]}
+                value={perDistancia[0].distanciaKm ?? 0}
+                format={(n) => formatKm(n)}
+                position={1}
+              />
+              <PodiumItem
+                ruta={perDistancia[2]}
+                value={perDistancia[2].distanciaKm ?? 0}
+                format={(n) => formatKm(n)}
+                position={3}
+              />
+            </div>
           </div>
         </section>
       );
@@ -220,9 +383,7 @@ export default function Rankings() {
     if (id === 'principals') {
       return (
         <section key="principals">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
-            Rànquings principals
-          </h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Rànquings principals</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Block
               title="Top 10 distància"
@@ -253,42 +414,58 @@ export default function Rankings() {
     }
 
     if (id === 'records') {
+      const rutaVel = stats.rutaVelocitatMax;
+      const rutaAlc = stats.rutaAlcadaMax;
+      const teVel = stats.velocitatMaxima != null && rutaVel != null;
+      const teAlc = stats.alcadaMaxima != null && rutaAlc != null;
       return (
         <section key="records">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
-            Rècords personals
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {stats.velocitatMaxima != null && stats.rutaVelocitatMax && (
-              <div className="app-card border-l-4 border-l-[var(--accent)]">
-                <div className="text-xs text-[var(--text-muted)]">Velocitat màxima</div>
-                <div className="text-xl font-bold text-[var(--accent)]">
-                  {stats.velocitatMaxima} km/h
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Rècords absoluts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {teVel && rutaVel && (
+              <div
+                className="app-card rounded-2xl border border-[var(--border)] p-6 flex flex-col gap-3"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, color-mix(in srgb, var(--accent) 5%, transparent), transparent)',
+                }}
+              >
+                <IconLightning />
+                <div className="text-5xl font-black text-[var(--accent)] tabular-nums leading-none">
+                  {stats.velocitatMaxima} <span className="text-3xl">km/h</span>
                 </div>
+                <p className="text-xs uppercase tracking-wider text-[var(--text-muted)] m-0">Velocitat màxima</p>
                 <Link
-                  to={`/rutes/${stats.rutaVelocitatMax.id}`}
-                  className="text-xs text-[var(--accent)] hover:underline"
+                  to={`/rutes/${rutaVel.id}`}
+                  className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent)] no-underline truncate"
                 >
-                  {stats.rutaVelocitatMax.nom}
+                  {rutaVel.nom}
                 </Link>
               </div>
             )}
-            {stats.alcadaMaxima != null && stats.rutaAlcadaMax && (
-              <div className="app-card border-l-4 border-l-[var(--accent2)]">
-                <div className="text-xs text-[var(--accent2)]">Alçada màxima</div>
-                <div className="text-xl font-bold text-[var(--text-primary)]">
-                  {stats.alcadaMaxima} m
+            {teAlc && rutaAlc && (
+              <div
+                className="app-card rounded-2xl border border-[var(--border)] p-6 flex flex-col gap-3"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, color-mix(in srgb, var(--accent) 5%, transparent), transparent)',
+                }}
+              >
+                <IconMountain />
+                <div className="text-5xl font-black text-[var(--accent)] tabular-nums leading-none">
+                  {stats.alcadaMaxima} <span className="text-3xl">m</span>
                 </div>
+                <p className="text-xs uppercase tracking-wider text-[var(--text-muted)] m-0">Alçada màxima</p>
                 <Link
-                  to={`/rutes/${stats.rutaAlcadaMax.id}`}
-                  className="text-xs text-[var(--accent2)] hover:underline"
+                  to={`/rutes/${rutaAlc.id}`}
+                  className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent)] no-underline truncate"
                 >
-                  {stats.rutaAlcadaMax.nom}
+                  {rutaAlc.nom}
                 </Link>
               </div>
             )}
-            {stats.velocitatMaxima == null && stats.alcadaMaxima == null && (
-              <p className="text-xs text-[var(--text-muted)] col-span-2">
+            {!teVel && !teAlc && (
+              <p className="text-sm text-[var(--text-muted)] col-span-2">
                 Afegeix velocitat o alçada màxima a les rutes.
               </p>
             )}
@@ -300,7 +477,7 @@ export default function Rankings() {
     if (id === 'comarques' && perComarca.length > 0) {
       return (
         <section key="comarques">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
             Estadístiques per comarques
           </h2>
           <p className="text-xs text-[var(--accent2)] mb-2">
@@ -395,45 +572,10 @@ export default function Rankings() {
       );
     }
 
-    if (id === 'topBarres' && barDataTop.length > 0) {
-      return (
-        <section key="topBarres" className="app-card">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">
-            Top 6 per distància
-          </h2>
-          <div className="h-48 mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barDataTop} layout="vertical" margin={{ left: 0, right: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
-                <YAxis
-                  type="category"
-                  dataKey="nom"
-                  width={72}
-                  tick={{ fill: 'var(--text-primary)', fontSize: 10 }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 6,
-                  }}
-                  formatter={(value: number) => [`${value} km`, 'Distància']}
-                />
-                <Bar dataKey="km" fill="var(--accent)" radius={[0, 4, 4, 0]} name="Km" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      );
-    }
-
     if (id === 'altres') {
       return (
         <section key="altres">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
-            Altres rànquings
-          </h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Altres rànquings</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Block
               title="Top 10 velocitat màxima"
@@ -460,8 +602,12 @@ export default function Rankings() {
   return (
     <div className="space-y-6">
       <section>
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">Rànquings i estadístiques</p>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">Els teus rècords i tendències</h1>
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
+          Rànquings i estadístiques
+        </p>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">
+          Els teus rècords i tendències
+        </h1>
         <p className="text-sm text-[var(--text-secondary)]">Ordenat per rellevància: el més important primer.</p>
       </section>
       {blocsOrdenats.map((b) => renderBloc(b.id))}
