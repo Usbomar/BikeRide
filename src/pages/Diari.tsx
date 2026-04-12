@@ -72,7 +72,7 @@ function RenderNota({ text }: { text: string }) {
 
   return (
     <div
-      className="prose-sm text-sm leading-relaxed text-[var(--text-secondary)] [&_li]:my-0.5"
+      className="diari-nota prose-sm max-w-none text-[15px] leading-[1.65] text-[var(--text-primary)] [&_em]:text-[var(--text-secondary)] [&_hr]:my-4 [&_hr]:border-[var(--border)] [&_li]:my-1 [&_li]:pl-1 [&_strong]:font-semibold [&_strong]:text-[var(--text-primary)]"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -118,7 +118,7 @@ export default function Diari() {
 
   return (
     <div>
-      <section className="mb-6">
+      <section className="mb-8">
         <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">Memòria</p>
         <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Diari de rutes</h1>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">
@@ -132,55 +132,90 @@ export default function Diari() {
           descripcio="Clica «+ Afegir nota» a qualsevol ruta (secció de sota) per començar el teu diari de rutes."
         />
       ) : (
-        <div className="relative mb-8 space-y-4 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-[var(--border)] md:before:left-[15px]">
+        <div className="mb-10 space-y-8">
           {rutesAmbNotes.map((ruta) => {
             const foto = ruta.fotos?.[0];
-            const data = new Date(ruta.data + 'T12:00:00').toLocaleDateString('ca-ES', {
+            const d = new Date(ruta.data + 'T12:00:00');
+            const dataLlarga = d.toLocaleDateString('ca-ES', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
               year: 'numeric',
             });
+            const mesCurt = d.toLocaleDateString('ca-ES', { month: 'short' });
+            const any = d.getFullYear();
 
             return (
-              <article key={ruta.id} className="app-card relative ml-0 flex flex-col gap-3 pl-8 md:pl-10">
-                <div
-                  className="absolute left-0 top-4 h-3 w-3 rounded-full border-2 border-[var(--accent)] bg-[var(--bg-card)] md:left-1 md:top-5 md:h-3.5 md:w-3.5"
-                  aria-hidden
-                />
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <Link
-                      to={`/rutes/${ruta.id}`}
-                      className="text-base font-semibold text-[var(--text-primary)] no-underline hover:text-[var(--accent)]"
-                    >
-                      {ruta.nom}
-                    </Link>
-                    <p className="mt-0.5 text-xs capitalize text-[var(--text-muted)]">{data}</p>
+              <article
+                key={ruta.id}
+                className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] shadow-sm transition-shadow duration-200 hover:shadow-md"
+              >
+                <div className="flex flex-col gap-0 sm:flex-row sm:items-stretch">
+                  <div className="flex shrink-0 flex-row items-center gap-3 border-b border-[var(--border)] bg-[linear-gradient(135deg,var(--accent-soft),transparent_55%)] px-4 py-3 sm:w-28 sm:flex-col sm:justify-center sm:border-b-0 sm:border-r sm:px-3 sm:py-5">
+                    <span className="text-2xl font-black tabular-nums leading-none text-[var(--accent)] sm:text-3xl">
+                      {d.getDate()}
+                    </span>
+                    <div className="flex flex-col sm:items-center sm:text-center">
+                      <span className="text-[11px] font-semibold capitalize text-[var(--text-secondary)]">{mesCurt}</span>
+                      <span className="text-[10px] text-[var(--text-muted)]">{any}</span>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => obrirEdicio(ruta)}
-                    className="shrink-0 rounded border border-[var(--border)] px-2 py-1 text-[10px] text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                  >
-                    Editar
-                  </button>
-                </div>
 
-                {foto && (
-                  <img
-                    src={foto.url}
-                    alt={foto.caption ?? ruta.nom}
-                    className="max-h-48 w-full rounded-lg object-cover"
-                  />
-                )}
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)]/80 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="text-[11px] capitalize leading-tight text-[var(--text-muted)] sm:hidden">{dataLlarga}</p>
+                        <Link
+                          to={`/rutes/${ruta.id}`}
+                          className="mt-0.5 block text-lg font-bold leading-snug tracking-tight text-[var(--text-primary)] no-underline transition-colors hover:text-[var(--accent)] sm:mt-0"
+                        >
+                          {ruta.nom}
+                        </Link>
+                        <p className="mt-0.5 hidden text-xs capitalize text-[var(--text-muted)] sm:block">{dataLlarga}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => obrirEdicio(ruta)}
+                        className="shrink-0 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                      >
+                        Editar nota
+                      </button>
+                    </div>
 
-                <RenderNota text={ruta.notes!} />
+                    {foto && (
+                      <div className="border-b border-[var(--border)]/60">
+                        <img
+                          src={foto.url}
+                          alt={foto.caption ?? ruta.nom}
+                          className="max-h-56 w-full object-cover sm:max-h-64"
+                        />
+                      </div>
+                    )}
 
-                <div className="mt-1 flex gap-3 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--text-muted)]">
-                  {ruta.distanciaKm != null && <span>{ruta.distanciaKm} km</span>}
-                  {ruta.desnivellMetres != null && <span>{ruta.desnivellMetres} m desn.</span>}
-                  {ruta.tipus && <span className="capitalize">{ruta.tipus}</span>}
+                    <div className="px-4 pb-4 pt-4">
+                      <div className="rounded-xl border border-[var(--border)]/50 bg-[var(--superficie-muted)]/35 px-4 py-3.5">
+                        <RenderNota text={ruta.notes!} />
+                      </div>
+                    </div>
+
+                    <div className="mt-auto flex flex-wrap gap-2 border-t border-[var(--border)] px-4 py-3">
+                      {ruta.distanciaKm != null && (
+                        <span className="inline-flex items-center rounded-full bg-[var(--accent-soft)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--accent)]">
+                          {ruta.distanciaKm} km
+                        </span>
+                      )}
+                      {ruta.desnivellMetres != null && (
+                        <span className="inline-flex items-center rounded-full bg-[var(--superficie-muted)] px-2.5 py-0.5 text-[11px] text-[var(--text-secondary)]">
+                          {ruta.desnivellMetres} m desn.
+                        </span>
+                      )}
+                      {ruta.tipus && (
+                        <span className="inline-flex items-center rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[11px] capitalize text-[var(--text-muted)]">
+                          {ruta.tipus}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </article>
             );
@@ -188,36 +223,41 @@ export default function Diari() {
         </div>
       )}
 
-      <div className="app-card">
+      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)]">
         <button
           type="button"
           onClick={() => setMostrarSenseNota((v) => !v)}
-          className="flex w-full items-center justify-between text-sm font-medium text-[var(--text-primary)]"
+          className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--superficie-muted)]/50"
         >
-          <span>
+          <span className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-xs font-bold text-[var(--accent)]">
+              {rutesSenseNota.length}
+            </span>
             Rutes sense nota
-            <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">({rutesSenseNota.length})</span>
           </span>
-          <span className="text-[var(--text-muted)]">{mostrarSenseNota ? '▲' : '▼'}</span>
+          <span className="text-lg leading-none text-[var(--text-muted)]">{mostrarSenseNota ? '▲' : '▼'}</span>
         </button>
 
         {mostrarSenseNota && (
-          <div className="mt-3 space-y-2">
+          <div className="border-t border-[var(--border)] px-2 pb-3 pt-1">
             {rutesSenseNota.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center justify-between border-b border-[var(--border)] py-2 last:border-0"
+                className="flex flex-col gap-2 rounded-xl px-2 py-2.5 transition-colors hover:bg-[var(--superficie-muted)]/40 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div>
-                  <Link to={`/rutes/${r.id}`} className="text-sm text-[var(--text-primary)] no-underline hover:text-[var(--accent)]">
+                <div className="min-w-0">
+                  <Link
+                    to={`/rutes/${r.id}`}
+                    className="text-sm font-medium text-[var(--text-primary)] no-underline hover:text-[var(--accent)]"
+                  >
                     {r.nom}
                   </Link>
-                  <span className="ml-2 text-xs text-[var(--text-muted)]">{r.data}</span>
+                  <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{r.data}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => obrirEdicio(r)}
-                  className="rounded bg-[var(--accent)]/10 px-2 py-1 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+                  className="shrink-0 self-start rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:self-center"
                 >
                   + Afegir nota
                 </button>
