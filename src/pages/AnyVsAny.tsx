@@ -126,7 +126,7 @@ export default function AnyVsAny() {
     const maxDesn = Math.max(...caps.map((c) => c.desnivell), 1);
     const maxSort = Math.max(...caps.map((c) => c.sortides), 1);
     const maxHores = Math.max(...caps.map((c) => c.hores), 1);
-    const row = (metric: string, pick: (t: (typeof tA) & {}) => number, max: number) => {
+    const row = (metric: string, pick: (t: typeof tA) => number, max: number) => {
       const base = { metric, A: Math.round((pick(tA) / max) * 100), B: Math.round((pick(tB) / max) * 100) };
       if (tC) return { ...base, C: Math.round((pick(tC) / max) * 100) };
       return base;

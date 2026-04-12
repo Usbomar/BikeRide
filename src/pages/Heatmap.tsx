@@ -36,10 +36,10 @@ function generarDiesAny(any: number): Date[][] {
 function colorCella(km: number, maxKm: number): string {
   if (km === 0) return 'var(--border)';
   const ratio = Math.min(km / maxKm, 1);
-  if (ratio < 0.25) return 'rgba(29, 158, 117, 0.20)';
-  if (ratio < 0.5) return 'rgba(29, 158, 117, 0.45)';
-  if (ratio < 0.75) return 'rgba(29, 158, 117, 0.70)';
-  return 'var(--accent)';
+  if (ratio < 0.25) return 'color-mix(in srgb, var(--accent) 18%, var(--border))';
+  if (ratio < 0.5) return 'color-mix(in srgb, var(--accent) 38%, var(--border))';
+  if (ratio < 0.75) return 'color-mix(in srgb, var(--accent2) 42%, var(--accent) 35%)';
+  return 'color-mix(in srgb, var(--accent) 78%, var(--accent2) 22%)';
 }
 
 function mateixDia(a: Date, b: Date): boolean {
@@ -187,7 +187,7 @@ export default function Heatmap() {
         </div>
       </div>
 
-      <div className="app-card mb-6">
+      <div className="app-card mb-6 border-[var(--accent)]/20 shadow-[inset_0_1px_0_0_var(--accent-soft)]">
         <div
           className="relative mb-2 min-h-[18px]"
           style={{ paddingLeft: labelColWidth, width: 'max-content', minWidth: '100%' }}
@@ -323,10 +323,22 @@ export default function Heatmap() {
 
       <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-[var(--text-muted)]">
         <span>Menys</span>
-        <span className="h-3 w-3 rounded-sm" style={{ background: 'rgba(29, 158, 117, 0.20)' }} />
-        <span className="h-3 w-3 rounded-sm" style={{ background: 'rgba(29, 158, 117, 0.45)' }} />
-        <span className="h-3 w-3 rounded-sm" style={{ background: 'rgba(29, 158, 117, 0.70)' }} />
-        <span className="h-3 w-3 rounded-sm" style={{ background: 'var(--accent)' }} />
+        <span
+          className="h-3 w-3 rounded-sm"
+          style={{ background: 'color-mix(in srgb, var(--accent) 18%, var(--border))' }}
+        />
+        <span
+          className="h-3 w-3 rounded-sm"
+          style={{ background: 'color-mix(in srgb, var(--accent) 38%, var(--border))' }}
+        />
+        <span
+          className="h-3 w-3 rounded-sm"
+          style={{ background: 'color-mix(in srgb, var(--accent2) 42%, var(--accent) 35%)' }}
+        />
+        <span
+          className="h-3 w-3 rounded-sm"
+          style={{ background: 'color-mix(in srgb, var(--accent) 78%, var(--accent2) 22%)' }}
+        />
         <span>Més</span>
       </div>
     </div>

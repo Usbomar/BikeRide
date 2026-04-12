@@ -142,7 +142,7 @@ export default function Mapa() {
       }
     }
 
-    setTracBiciPerComarca({});
+    queueMicrotask(() => setTracBiciPerComarca({}));
     (async () => {
       for (const com of zonasUniques) {
         if (cancelled) break;
@@ -154,7 +154,7 @@ export default function Mapa() {
       cancelled = true;
       ac.abort();
     };
-  }, [clauZonas]);
+  }, [clauZonas, zonasUniques]);
 
   return (
     <div>
@@ -330,7 +330,15 @@ export default function Mapa() {
         )}
       </div>
 
+      <p className="mt-3 max-w-3xl text-xs leading-relaxed text-[var(--text-muted)]">
+        Les línies segueixen un traçat aproximat per bicicleta (OSRM) des del carrer Calassanç Duran (Sabadell) fins al centre de la comarca de destí indicada a cada ruta. Si el servei no respon, es mostra la línia recta.
+      </p>
+
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-secondary)]">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: 'var(--accent2)' }} />
+          Sortida Sabadell
+        </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: 'var(--accent)' }} />
           MTB

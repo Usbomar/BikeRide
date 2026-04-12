@@ -205,28 +205,28 @@ export default function Informes() {
 
       {kpiActual && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="rounded-lg bg-[var(--superficie-muted)] p-4">
+          <div className="rounded-xl border border-[var(--accent)]/25 bg-[linear-gradient(145deg,var(--accent-soft),transparent_65%)] p-4">
             <div className="text-xs text-[var(--text-muted)] mb-1">km</div>
             <div className="text-2xl font-bold text-[var(--accent)] tabular-nums">{kpiActual.km}</div>
             <div className="mt-1 min-h-[1.25rem]">
               <TrendText actual={kpiActual.km} anterior={kpiAnterior?.km} />
             </div>
           </div>
-          <div className="rounded-lg bg-[var(--superficie-muted)] p-4">
+          <div className="rounded-xl border border-[var(--accent2)]/25 bg-[linear-gradient(145deg,var(--accent2-soft),transparent_65%)] p-4">
             <div className="text-xs text-[var(--text-muted)] mb-1">desnivell</div>
-            <div className="text-2xl font-bold text-[var(--accent)] tabular-nums">{kpiActual.desnivell}</div>
+            <div className="text-2xl font-bold text-[var(--accent2)] tabular-nums">{kpiActual.desnivell}</div>
             <div className="mt-1 min-h-[1.25rem]">
               <TrendText actual={kpiActual.desnivell} anterior={kpiAnterior?.desnivell} />
             </div>
           </div>
-          <div className="rounded-lg bg-[var(--superficie-muted)] p-4">
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--accent-soft)_35%,var(--superficie-muted))] p-4">
             <div className="text-xs text-[var(--text-muted)] mb-1">sortides</div>
             <div className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">{kpiActual.sortides}</div>
             <div className="mt-1 min-h-[1.25rem]">
               <TrendText actual={kpiActual.sortides} anterior={kpiAnterior?.sortides} />
             </div>
           </div>
-          <div className="rounded-lg bg-[var(--superficie-muted)] p-4">
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--accent2-soft)_28%,var(--superficie-muted))] p-4">
             <div className="text-xs text-[var(--text-muted)] mb-1">hores</div>
             <div className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">{kpiActual.hores}</div>
             <div className="mt-1 min-h-[1.25rem]">
@@ -237,7 +237,7 @@ export default function Informes() {
       )}
 
       <div className="space-y-5">
-        <div className="app-card">
+        <div className="app-card ring-1 ring-[var(--accent)]/10">
           <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Evolució per període</h2>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height={280}>
