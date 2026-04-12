@@ -87,63 +87,6 @@ function calcularStreaks(rutes: Ruta[]): {
   return { streakActual, record };
 }
 
-function IconaPlus() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
-
-function IconaTrofeu() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <path d="M8 21h8M12 17v4M6 3h12v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V3z" />
-      <path d="M6 8H4a2 2 0 0 0 2 2M18 8h2a2 2 0 0 1-2 2" />
-    </svg>
-  );
-}
-
-function IconaMapa() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
-    </svg>
-  );
-}
-
-function IconaTarget() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <circle cx="12" cy="12" r="8" />
-      <circle cx="12" cy="12" r="4.5" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-const ACCESSOS = [
-  { to: '/nova-ruta', label: 'Nova ruta', icona: 'plus' as const },
-  { to: '/rankings', label: 'Rànquings', icona: 'trofeu' as const },
-  { to: '/mapa', label: 'Mapa', icona: 'mapa' as const },
-  { to: '/reptes', label: 'Reptes', icona: 'target' as const },
-];
-
-function IconaAcces(t: (typeof ACCESSOS)[number]['icona']) {
-  switch (t) {
-    case 'plus':
-      return <IconaPlus />;
-    case 'trofeu':
-      return <IconaTrofeu />;
-    case 'mapa':
-      return <IconaMapa />;
-    case 'target':
-      return <IconaTarget />;
-  }
-}
-
 function MiniBarra({ pct }: { pct: number }) {
   const w = Math.min(100, Math.max(0, pct));
   return (
@@ -220,7 +163,7 @@ export default function Dashboard() {
     const comarca = distribucioPerComarca(rutes)[0];
     if (comarca) {
       list.push({
-        text: `${comarca.comarca} és la teva comarca favorita amb ${comarca.vegades} sortides`,
+        text: `${comarca.comarca} és la vostra comarca favorita amb ${comarca.vegades} sortides`,
         color: 'accent',
       });
     }
@@ -228,7 +171,7 @@ export default function Dashboard() {
     const rutaLlarga = [...rutes].sort((a, b) => (b.distanciaKm ?? 0) - (a.distanciaKm ?? 0))[0];
     if (rutaLlarga && (rutaLlarga.distanciaKm ?? 0) > 0) {
       list.push({
-        text: `La teva ruta més llarga: ${rutaLlarga.nom} (${rutaLlarga.distanciaKm} km)`,
+        text: `La vostra ruta més llarga: ${rutaLlarga.nom} (${rutaLlarga.distanciaKm} km)`,
         color: 'accent2',
       });
     }
@@ -236,7 +179,7 @@ export default function Dashboard() {
     const perTipus = [...distribucioPerTipus(rutes)].sort((a, b) => b.count - a.count)[0];
     if (perTipus && rutes.length > 0) {
       list.push({
-        text: `Prefereixes ${TIPUS_LABEL[perTipus.tipus]}: ${perTipus.count} de ${rutes.length} rutes`,
+        text: `Preferiu ${TIPUS_LABEL[perTipus.tipus]}: ${perTipus.count} de ${rutes.length} de les vostres rutes`,
         color: 'accent',
       });
     }
@@ -260,153 +203,184 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <section className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <section className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          <p className="mb-1 text-[11px] font-medium uppercase tracking-widest text-[var(--accent)]">
             {new Date().toLocaleDateString('ca-ES', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
             })}
           </p>
-          <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
-            Benvingut de nou
+          <h1 className="text-3xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+            Benvinguts de nou
           </h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            {stats.sortides} sortides · {stats.distancia.toFixed(0)} km acumulats
+          </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-[var(--text-secondary)]">{stats.sortides} sortides registrades</p>
-        </div>
+        <Link
+          to="/nova-ruta"
+          className="flex shrink-0 items-center gap-2 rounded-xl bg-[var(--accent2)] px-4 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Nova ruta
+        </Link>
       </section>
 
       <section>
-        <div className="grid grid-cols-1 divide-y divide-[var(--border)] overflow-hidden rounded-2xl border border-[var(--border)] md:grid-cols-3 md:divide-x md:divide-y-0">
-          <div className="p-6 md:border-r md:border-[var(--border)]">
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Distància total</div>
-            <div className="text-5xl font-black tabular-nums leading-none text-[var(--accent)]">
-              {stats.distancia.toFixed(1)}
+        <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-[var(--border)] md:grid-cols-3">
+          <div className="relative flex min-h-[140px] flex-col justify-between bg-[var(--accent)] p-7">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-white/70">Distància total</div>
+            <div>
+              <div className="text-6xl font-black tabular-nums leading-none text-white">{stats.distancia.toFixed(0)}</div>
+              <div className="mt-1 text-lg font-semibold text-white/70">km</div>
             </div>
-            <div className="mt-1 text-sm text-[var(--text-muted)]">km</div>
           </div>
-          <div className="p-6 md:border-r md:border-[var(--border)]">
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Desnivell acumulat</div>
-            <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">
-              {(stats.desnivell / 1000).toFixed(2)}
+
+          <div className="flex min-h-[120px] flex-col justify-between border-t border-[var(--border)] p-7 md:border-l md:border-t-0">
+            <div className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Desnivell acumulat</div>
+            <div>
+              <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">
+                {(stats.desnivell / 1000).toFixed(2)}
+              </div>
+              <div className="mt-1 text-sm text-[var(--text-muted)]">mil metres</div>
             </div>
-            <div className="mt-1 text-sm text-[var(--text-muted)]">mil metres</div>
           </div>
-          <div className="p-6">
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Temps en moviment</div>
-            <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">
-              {Math.floor(stats.hores)}
-            </div>
-            <div className="mt-1 text-sm text-[var(--text-muted)]">
-              hores · {stats.sortides} sortides
+
+          <div className="flex min-h-[120px] flex-col justify-between border-t border-[var(--border)] p-7 md:border-l md:border-t-0">
+            <div className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Temps en moviment</div>
+            <div>
+              <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">
+                {Math.floor(stats.hores)}
+              </div>
+              <div className="mt-1 text-sm text-[var(--text-muted)]">
+                hores · {stats.sortides} sortides
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="app-card">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-[var(--text-primary)]">Evolució — últims 12 mesos</span>
-          <span className="text-xs text-[var(--text-muted)]">km</span>
-        </div>
-        <div className="h-[180px] w-full">
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={dadesEvolucio} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gradientKm" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="label"
-                tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis hide />
-              <Tooltip
-                contentStyle={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
-                formatter={(v: number) => [`${v} km`, '']}
-                labelFormatter={(l) => l}
-              />
-              <Area
-                type="monotone"
-                dataKey="km"
-                stroke="var(--accent)"
-                strokeWidth={2.5}
-                fill="url(#gradientKm)"
-                dot={false}
-                activeDot={{ r: 4, fill: 'var(--accent)' }}
-              />
-              {refMesActual != null && (
-                <ReferenceLine
-                  x={refMesActual}
-                  stroke="var(--accent2)"
-                  strokeDasharray="3 3"
-                  strokeWidth={1.5}
+      <section className="app-card overflow-hidden p-0">
+        <div className="px-5 pb-2 pt-5">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-sm font-semibold text-[var(--text-primary)]">Evolució — últims 12 mesos</span>
+            <span className="text-xs text-[var(--text-muted)]">km</span>
+          </div>
+          <div className="h-[160px] w-full">
+            <ResponsiveContainer width="100%" height={160}>
+              <AreaChart data={dadesEvolucio} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradientKm" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="label"
+                  tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
                 />
-              )}
-            </AreaChart>
-          </ResponsiveContainer>
+                <YAxis hide />
+                <Tooltip
+                  contentStyle={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  formatter={(v: number) => [`${v} km`, '']}
+                  labelFormatter={(l) => l}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="km"
+                  stroke="var(--accent)"
+                  strokeWidth={2.5}
+                  fill="url(#gradientKm)"
+                  dot={false}
+                  activeDot={{ r: 4, fill: 'var(--accent)' }}
+                />
+                {refMesActual != null && (
+                  <ReferenceLine
+                    x={refMesActual}
+                    stroke="var(--accent2)"
+                    strokeDasharray="3 3"
+                    strokeWidth={1.5}
+                  />
+                )}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </section>
 
-      <section>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div className="app-card flex flex-col p-4">
+        <div className="border-t border-[var(--border)]" />
+
+        <div className="grid grid-cols-2 divide-y divide-[var(--border)] md:grid-cols-4 md:divide-x md:divide-y-0">
+          <div className="p-4">
             <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">Km aquest mes</div>
-            <div className="mt-1 text-2xl font-black tabular-nums text-[var(--accent)]">{mesActualKm.toFixed(1)}</div>
+            <div className="mt-1.5 text-2xl font-black tabular-nums text-[var(--accent)]">{mesActualKm.toFixed(1)}</div>
             {mesPassatKm > 0 && (
               <div
-                className={`mt-0.5 text-xs font-medium ${
-                  tendencia >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                className={`mt-0.5 text-[11px] font-semibold ${
+                  tendencia >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
                 }`}
               >
-                {tendencia >= 0 ? '↑' : '↓'} {tendencia >= 0 ? '+' : ''}
-                {tendencia}% vs mes anterior
+                {tendencia >= 0 ? '↑' : '↓'}
+                {tendencia >= 0 ? '+' : ''}
+                {tendencia}%
               </div>
             )}
             <MiniBarra pct={pctMesActual} />
           </div>
 
-          <div className="app-card flex flex-col p-4">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">
-              Mitjana km / sortida
-            </div>
-            <div className="mt-1 text-2xl font-black tabular-nums text-[var(--text-primary)]">
+          <div className="p-4">
+            <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">Mitjana / sortida</div>
+            <div className="mt-1.5 text-2xl font-black tabular-nums text-[var(--text-primary)]">
               {stats.mitjanaPerSortida}
-              {stats.mitjanaPerSortida !== '—' ? <span className="text-sm font-semibold text-[var(--text-muted)]"> km</span> : null}
+              {stats.mitjanaPerSortida !== '—' && (
+                <span className="text-sm font-semibold text-[var(--text-muted)]"> km</span>
+              )}
             </div>
             <MiniBarra pct={pctMitjana} />
           </div>
 
-          <div className="app-card flex flex-col p-4">
+          <div className="p-4">
             <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">Millor mes</div>
             {millorMesEvolucio ? (
               <>
-                <div className="mt-1 text-lg font-bold leading-tight text-[var(--text-primary)]">
+                <div className="mt-1.5 text-base font-bold leading-tight text-[var(--text-primary)]">
                   {millorMesEvolucio.label}
                 </div>
                 <div className="text-sm font-black tabular-nums text-[var(--accent2)]">{millorMesEvolucio.km} km</div>
               </>
             ) : (
-              <div className="mt-1 text-sm text-[var(--text-muted)]">—</div>
+              <div className="mt-1.5 text-sm text-[var(--text-muted)]">—</div>
             )}
             <MiniBarra pct={pctMillorMesCard} />
           </div>
 
-          <div className="app-card flex flex-col p-4">
+          <div className="p-4">
             <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">Streak setmanal</div>
-            <div className="mt-1 text-2xl font-black tabular-nums text-[var(--text-primary)]">{streakActual}</div>
-            <div className="text-[10px] text-[var(--text-muted)]">setmanes · rècord {streakRecord}</div>
+            <div className="mt-1.5 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black tabular-nums text-[var(--text-primary)]">{streakActual}</span>
+              <span className="text-xs text-[var(--text-muted)]">setm.</span>
+            </div>
+            <div className="text-[10px] text-[var(--text-muted)]">rècord {streakRecord}</div>
             <MiniBarra pct={pctStreak} />
           </div>
         </div>
@@ -414,7 +388,7 @@ export default function Dashboard() {
 
       <section>
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Últimes sortides</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Últimes sortides</h2>
           <Link
             to="/rutes"
             className="text-xs font-medium text-[var(--accent)] no-underline hover:underline"
@@ -427,7 +401,7 @@ export default function Dashboard() {
             <EmptyState
               compact
               titol="Encara no hi ha rutes recents"
-              descripcio="Les teves últimes sortides apareixeran aquí."
+              descripcio="Les vostres últimes sortides apareixeran aquí."
               accio={{ label: 'Afegir ruta', to: '/nova-ruta' }}
             />
           ) : (
@@ -439,7 +413,7 @@ export default function Dashboard() {
               >
                 <div
                   className="w-1 shrink-0 self-stretch rounded-full"
-                    style={{
+                  style={{
                     background:
                       r.tipus === 'mtb'
                         ? 'var(--accent)'
@@ -484,41 +458,24 @@ export default function Dashboard() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Sobre les teves rutes</h2>
+        <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Sobre les vostres rutes</h2>
         {insights.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]">Afegeix més rutes per veure insights.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {insights.map((ins, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+              <div key={i} className="app-card flex items-start gap-3 p-4">
                 <div
-                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                   style={{
                     background: ins.color === 'accent' ? 'var(--accent)' : 'var(--accent2)',
                   }}
                 />
-                <span>{ins.text}</span>
+                <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{ins.text}</p>
               </div>
             ))}
           </div>
         )}
-      </section>
-
-      <section>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {ACCESSOS.map((a) => (
-            <Link
-              key={a.to}
-              to={a.to}
-              className="app-card group flex flex-col items-center gap-2 py-4 text-center no-underline transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--accent)]/5"
-            >
-              <div className="text-[var(--accent)]">{IconaAcces(a.icona)}</div>
-              <span className="text-xs font-medium text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)]">
-                {a.label}
-              </span>
-            </Link>
-          ))}
-        </div>
       </section>
     </div>
   );
