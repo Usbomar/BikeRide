@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { useRutes } from '../store/useRutes';
 import type { Ruta } from '../types/ruta';
+import { EmptyState } from '../components/EmptyState';
 
 const MESOS_LABELS = ['Gen', 'Feb', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Des'];
 
@@ -135,32 +136,33 @@ export default function AnyVsAny() {
   if (anysDisponibles.length < 2) {
     return (
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
-          Comparativa anual
-        </p>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-2">Any vs Any</h1>
-        <div className="app-card rounded-xl border border-[var(--border)] p-8 text-center">
-          <p className="text-sm text-[var(--text-secondary)]">
-            Necessites rutes de com a mínim 2 anys diferents per fer la comparativa.
+        <section className="mb-6">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+            Comparativa anual
           </p>
-        </div>
+          <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Any vs Any</h1>
+        </section>
+        <EmptyState
+          titol="No hi ha prou anys per comparar"
+          descripcio="Necessites rutes de com a mínim 2 anys naturals diferents."
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
           Comparativa anual
         </p>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">Any vs Any</h1>
-        <p className="text-sm text-[var(--text-secondary)]">
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Any vs Any</h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
           Compara volum i patró mensual entre dos anys naturals.
         </p>
-      </div>
+      </section>
 
-      <div className="flex flex-wrap items-center justify-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap justify-center">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Any A</label>
           <select
@@ -249,14 +251,14 @@ export default function AnyVsAny() {
               <Bar
                 dataKey="kmA"
                 name="a"
-                fill="#1D9E75"
+                fill="var(--accent)"
                 fillOpacity={0.85}
                 radius={[3, 3, 0, 0]}
               />
               <Bar
                 dataKey="kmB"
                 name="b"
-                fill="#BA7517"
+                fill="var(--accent2)"
                 fillOpacity={0.85}
                 radius={[3, 3, 0, 0]}
               />
@@ -267,14 +269,14 @@ export default function AnyVsAny() {
           <span>
             <span
               className="mr-1 inline-block h-3 w-3 rounded-sm"
-              style={{ background: '#1D9E75' }}
+              style={{ background: 'var(--accent)' }}
             />
             {anyA}
           </span>
           <span>
             <span
               className="mr-1 inline-block h-3 w-3 rounded-sm"
-              style={{ background: '#BA7517' }}
+              style={{ background: 'var(--accent2)' }}
             />
             {anyB}
           </span>
@@ -309,14 +311,14 @@ export default function AnyVsAny() {
               <Bar
                 dataKey="desnA"
                 name="a"
-                fill="#1D9E75"
+                fill="var(--accent)"
                 fillOpacity={0.85}
                 radius={[3, 3, 0, 0]}
               />
               <Bar
                 dataKey="desnB"
                 name="b"
-                fill="#BA7517"
+                fill="var(--accent2)"
                 fillOpacity={0.85}
                 radius={[3, 3, 0, 0]}
               />
@@ -327,14 +329,14 @@ export default function AnyVsAny() {
           <span>
             <span
               className="mr-1 inline-block h-3 w-3 rounded-sm"
-              style={{ background: '#1D9E75' }}
+              style={{ background: 'var(--accent)' }}
             />
             {anyA}
           </span>
           <span>
             <span
               className="mr-1 inline-block h-3 w-3 rounded-sm"
-              style={{ background: '#BA7517' }}
+              style={{ background: 'var(--accent2)' }}
             />
             {anyB}
           </span>
@@ -357,16 +359,16 @@ export default function AnyVsAny() {
               <Radar
                 name={String(anyA)}
                 dataKey="A"
-                stroke="#1D9E75"
-                fill="#1D9E75"
+                stroke="var(--accent)"
+                fill="var(--accent)"
                 fillOpacity={0.25}
                 strokeWidth={2}
               />
               <Radar
                 name={String(anyB)}
                 dataKey="B"
-                stroke="#BA7517"
-                fill="#BA7517"
+                stroke="var(--accent2)"
+                fill="var(--accent2)"
                 fillOpacity={0.2}
                 strokeWidth={2}
               />
@@ -377,14 +379,14 @@ export default function AnyVsAny() {
           <span>
             <span
               className="mr-1 inline-block h-3 w-3 rounded-sm"
-              style={{ background: '#1D9E75' }}
+              style={{ background: 'var(--accent)' }}
             />
             {anyA}
           </span>
           <span>
             <span
               className="mr-1 inline-block h-3 w-3 rounded-sm"
-              style={{ background: '#BA7517' }}
+              style={{ background: 'var(--accent2)' }}
             />
             {anyB}
           </span>

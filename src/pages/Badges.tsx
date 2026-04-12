@@ -385,8 +385,8 @@ function colorBadge(color: Badge['color'], assolit: boolean) {
     };
   }
   const map = {
-    accent: { bg: 'rgba(29,158,117,0.12)', icon: '#1D9E75', ring: '#1D9E75' },
-    accent2: { bg: 'rgba(186,117,23,0.12)', icon: '#BA7517', ring: '#BA7517' },
+    accent: { bg: 'var(--accent-soft)', icon: 'var(--accent)', ring: 'var(--accent)' },
+    accent2: { bg: 'var(--accent2-soft)', icon: 'var(--accent2)', ring: 'var(--accent2)' },
     blau: { bg: 'rgba(55,138,221,0.12)', icon: '#378ADD', ring: '#378ADD' },
     verd: { bg: 'rgba(99,153,34,0.12)', icon: '#639922', ring: '#639922' },
     vermell: { bg: 'rgba(226,75,74,0.12)', icon: '#E24B4A', ring: '#E24B4A' },
@@ -414,7 +414,9 @@ function BadgeCard({
       }`}
       style={{
         background: colors.bg,
-        boxShadow: assolit ? `0 0 0 1.5px ${colors.ring}20` : 'none',
+        boxShadow: assolit
+          ? `0 0 0 1.5px color-mix(in srgb, ${colors.ring} 40%, transparent)`
+          : 'none',
       }}
     >
       <div style={{ color: colors.icon }}>
@@ -480,13 +482,15 @@ export default function Badges() {
 
   return (
     <div>
-      <p className="mb-0.5 text-xs font-medium uppercase tracking-wider text-[var(--accent)]">Col·lecció</p>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
-        Badges i assoliments
-      </h1>
-      <p className="mb-6 text-sm text-[var(--text-secondary)]">
-        {assolits.size} de {BADGES.length} badges obtinguts
-      </p>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">Col·lecció</p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+          Badges i assoliments
+        </h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          {assolits.size} de {BADGES.length} badges obtinguts
+        </p>
+      </section>
 
       <div className="mb-8">
         <div className="h-3 w-full overflow-hidden rounded-full bg-[var(--border)]">
@@ -494,7 +498,7 @@ export default function Badges() {
             className="h-full rounded-full transition-all duration-500"
             style={{
               width: `${pctCompletat}%`,
-              background: 'linear-gradient(90deg, #1D9E75, #BA7517)',
+              background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
             }}
           />
         </div>
@@ -503,7 +507,7 @@ export default function Badges() {
 
       {ultimsTres.length >= 1 && (
         <section className="mb-8">
-          <h2 className="mb-3 text-lg font-semibold text-[var(--text-primary)]">Últims obtinguts</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Últims obtinguts</h2>
           <div className="flex flex-wrap justify-center gap-4 sm:justify-start">
             {ultimsTres.map((b) => (
               <div key={b.id} className="w-[140px] sm:w-[160px]">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRutes } from '../store/useRutes';
+import { EmptyState } from '../components/EmptyState';
 import type { Ruta } from '../types/ruta';
 import { COMARQUES_SVG } from '../data/comarques-svg';
 
@@ -109,15 +110,35 @@ export default function Comarques() {
     return [...visitadesList, ...noVisitades];
   }, [visitades, statsPerComarca]);
 
+  if (rutes.length === 0) {
+    return (
+      <div>
+        <section className="mb-6">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+            Territori explorat
+          </p>
+          <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Comarques</h1>
+        </section>
+        <EmptyState
+          titol="Sense dades al mapa de comarques"
+          descripcio="Afegeix rutes amb comarca de destí per veure l’exploració."
+          accio={{ label: 'Nova ruta', to: '/nova-ruta' }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
-        Territori explorat
-      </p>
-      <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">Comarques</h1>
-      <p className="text-sm text-[var(--text-secondary)] mb-6">
-        {visitades.size} comarques explorades de {COMARQUES_SVG.length}
-      </p>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          Territori explorat
+        </p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Comarques</h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          {visitades.size} comarques explorades de {COMARQUES_SVG.length}
+        </p>
+      </section>
 
       <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <div className="w-full max-w-lg flex-1 mx-auto lg:mx-0">
@@ -159,7 +180,7 @@ export default function Comarques() {
                       y={comarca.labelY}
                       fontSize={7}
                       textAnchor="middle"
-                      fill={ratio > 0.5 ? '#085041' : '#0F6E56'}
+                      fill="var(--accent-hover)"
                       fontWeight={500}
                       className="pointer-events-none select-none"
                     >

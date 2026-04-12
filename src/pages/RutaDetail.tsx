@@ -51,8 +51,13 @@ export default function RutaDetail() {
         </div>
       </div>
 
-      <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-0.5">{ruta.nom}</h1>
-      <p className="text-xs text-[var(--text-muted)] mb-4">{formatDate(ruta.data)}</p>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          Detall de la ruta
+        </p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">{ruta.nom}</h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">{formatDate(ruta.data)}</p>
+      </section>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {ruta.distanciaKm != null && (
@@ -112,7 +117,7 @@ export default function RutaDetail() {
 
       {ruta.mapes.length > 0 && (
         <section className="mb-6">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Mapes / plànols</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Mapes / plànols</h2>
           <div className="grid grid-cols-1 gap-4">
             {ruta.mapes.map((img) => (
               <div key={img.id} className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
@@ -126,7 +131,7 @@ export default function RutaDetail() {
 
       {ruta.fotos.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Fotos</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Fotos</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {ruta.fotos.map((img) => (
               <div key={img.id} className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">

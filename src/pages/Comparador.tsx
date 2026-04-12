@@ -15,8 +15,9 @@ import {
 } from 'recharts';
 import { useRutes } from '../store/useRutes';
 import type { Ruta } from '../types/ruta';
+import { EmptyState } from '../components/EmptyState';
 
-const COLORS_RUTA = ['#1D9E75', '#BA7517', '#378ADD'];
+const COLORS_RUTA = ['var(--accent)', 'var(--accent2)', '#378ADD'];
 
 function ressaltarValors<K extends keyof Ruta>(
   rutes: Ruta[],
@@ -146,7 +147,7 @@ export default function Comparador() {
   }, [rutesSeleccionades]);
 
   function cellClass(h: 'neutral' | 'max' | 'min') {
-    if (h === 'max') return 'bg-[rgba(29,158,117,0.12)] font-bold text-[#1D9E75]';
+    if (h === 'max') return 'bg-[var(--accent-soft)] font-bold text-[var(--accent)]';
     if (h === 'min') return 'bg-[rgba(226,75,74,0.08)] font-bold text-[#E24B4A]';
     return 'text-[var(--text-secondary)]';
   }
@@ -155,13 +156,17 @@ export default function Comparador() {
 
   return (
     <div>
-      <p className="mb-0.5 text-xs font-medium uppercase tracking-wider text-[var(--accent)]">Anàlisi</p>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
-        Comparador de rutes
-      </h1>
-      <p className="mb-6 text-sm text-[var(--text-secondary)]">
-        Compara fins a 3 rutes per km, desnivell i perfil.
-      </p>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          Anàlisi
+        </p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+          Comparador de rutes
+        </h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          Compara fins a 3 rutes per km, desnivell i perfil.
+        </p>
+      </section>
 
       <div className="mb-8 space-y-4">
         <div>
@@ -227,21 +232,21 @@ export default function Comparador() {
       </div>
 
       {seleccionades.length === 0 && (
-        <div className="app-card mx-auto max-w-lg p-8 text-center text-sm text-[var(--text-secondary)]">
-          Selecciona almenys 2 rutes per veure la comparativa. Pots triar fins a 3.
-        </div>
+        <EmptyState
+          titol="Selecciona rutes per comparar"
+          descripcio="Tria fins a 3 rutes al cercador de sota. En necessites almenys 2 per veure la comparativa."
+        />
       )}
 
       {seleccionades.length === 1 && (
-        <div className="app-card mx-auto max-w-lg p-8 text-center text-sm text-[var(--text-secondary)]">
-          Afegeix una ruta més per activar la comparativa.
-        </div>
+        <EmptyState titol="Falta una ruta més" descripcio="Afegeix una segona ruta per activar la comparativa." />
       )}
 
       {hiHaComparativa && (
         <div className="space-y-8">
-          <section className="overflow-x-auto rounded-xl border border-[var(--border)]">
-            <table className="w-full min-w-[480px] text-left text-sm">
+          <section className="rounded-xl border border-[var(--border)]">
+            <div className="-mx-4 overflow-x-auto px-4">
+              <table className="w-full min-w-[500px] text-left text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--bg-card)]">
                   <th className="px-3 py-2 text-xs font-medium text-[var(--text-muted)]">Mètrica</th>
@@ -322,6 +327,7 @@ export default function Comparador() {
                 </tr>
               </tbody>
             </table>
+            </div>
           </section>
 
           <section>

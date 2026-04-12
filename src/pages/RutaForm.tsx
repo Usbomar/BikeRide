@@ -87,25 +87,25 @@ export default function RutaForm() {
   const ruta = id ? getRuta(id) : null;
 
   useEffect(() => {
-    if (ruta) {
-      setForm({
-        data: ruta.data.slice(0, 10),
-        nom: ruta.nom,
-        distanciaKm: ruta.distanciaKm,
-        duradaMinuts: ruta.duradaMinuts,
-        desnivellMetres: ruta.desnivellMetres,
-        alcadaMaximaMetres: ruta.alcadaMaximaMetres,
-        tipus: ruta.tipus,
-        zona: ruta.zona ?? '',
-        dificultat: ruta.dificultat,
-        velocitatMitjana: ruta.velocitatMitjana,
-        velocitatMaxima: ruta.velocitatMaxima,
-        notes: ruta.notes ?? '',
-        mapes: ruta.mapes ?? [],
-        fotos: ruta.fotos ?? [],
-      });
-    }
-  }, [id, ruta?.id]);
+    if (!ruta) return;
+    const next = {
+      data: ruta.data.slice(0, 10),
+      nom: ruta.nom,
+      distanciaKm: ruta.distanciaKm,
+      duradaMinuts: ruta.duradaMinuts,
+      desnivellMetres: ruta.desnivellMetres,
+      alcadaMaximaMetres: ruta.alcadaMaximaMetres,
+      tipus: ruta.tipus,
+      zona: ruta.zona ?? '',
+      dificultat: ruta.dificultat,
+      velocitatMitjana: ruta.velocitatMitjana,
+      velocitatMaxima: ruta.velocitatMaxima,
+      notes: ruta.notes ?? '',
+      mapes: ruta.mapes ?? [],
+      fotos: ruta.fotos ?? [],
+    };
+    queueMicrotask(() => setForm(next));
+  }, [ruta]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +119,14 @@ export default function RutaForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-4">{isEdit ? 'Editar ruta' : 'Nova ruta'}</h1>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          {isEdit ? 'Editar ruta' : 'Nova ruta'}
+        </p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+          {isEdit ? 'Revisa la sortida' : 'Afegeix una sortida'}
+        </h1>
+      </section>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* 1. Identificació */}
         <fieldset className="app-card space-y-3">

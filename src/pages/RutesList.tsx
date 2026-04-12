@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useRutes } from '../store/useRutes';
+import { useRutes, type RutesListColumn } from '../store/useRutes';
+import type { Ruta } from '../types/ruta';
 import { formatKm } from '../utils/format';
+import { EmptyState } from '../components/EmptyState';
 
 function formatDate(s: string) {
   const d = new Date(s);
@@ -22,7 +24,7 @@ export default function RutesList() {
     const { sortBy, sortDirection } = rutesList;
     const factor = sortDirection === 'asc' ? 1 : -1;
 
-    const getValue = (r: any) => {
+    const getValue = (r: Ruta): string | number => {
       switch (sortBy) {
         case 'data':
           return new Date(r.data).getTime();
@@ -94,11 +96,17 @@ export default function RutesList() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <h1 className="text-xl font-semibold text-[var(--text-primary)]">Rutes</h1>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          Les teves rutes
+        </p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Rutes</h1>
+      </section>
+
+      <div className="mb-3 flex flex-wrap justify-end gap-2">
         <Link
           to="/nova-ruta"
-          className="px-4 py-1.5 rounded-lg font-medium text-white bg-[var(--accent)] hover:opacity-90 transition-opacity no-underline"
+          className="rounded-lg bg-[var(--accent)] px-4 py-1.5 font-medium text-white no-underline transition-opacity hover:opacity-90"
         >
           Nova ruta
         </Link>
@@ -122,23 +130,25 @@ export default function RutesList() {
         </label>
         <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
           <span className="font-medium">Camps visibles:</span>
-          {[
-            { id: 'data', label: 'Data' },
-            { id: 'nom', label: 'Nom' },
-            { id: 'tipus', label: 'Tipus' },
-            { id: 'zona', label: 'Comarca' },
-            { id: 'distancia', label: 'Km' },
-            { id: 'durada', label: 'Temps' },
-            { id: 'desnivell', label: 'Desnivell' },
-            { id: 'alcadaMaxima', label: 'Alçada màx.' },
-            { id: 'velocitatMaxima', label: 'Velocitat màx.' },
-          ].map((c) => (
+          {(
+            [
+              { id: 'data', label: 'Data' },
+              { id: 'nom', label: 'Nom' },
+              { id: 'tipus', label: 'Tipus' },
+              { id: 'zona', label: 'Comarca' },
+              { id: 'distancia', label: 'Km' },
+              { id: 'durada', label: 'Temps' },
+              { id: 'desnivell', label: 'Desnivell' },
+              { id: 'alcadaMaxima', label: 'Alçada màx.' },
+              { id: 'velocitatMaxima', label: 'Velocitat màx.' },
+            ] as const satisfies ReadonlyArray<{ id: RutesListColumn; label: string }>
+          ).map((c) => (
             <button
               key={c.id}
               type="button"
-              onClick={() => toggleColumnVisibility(c.id as any)}
+              onClick={() => toggleColumnVisibility(c.id)}
               className={`px-2 py-0.5 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${
-                isVisible(c.id as any)
+                isVisible(c.id)
                   ? 'bg-[var(--accent-soft)] border-[var(--accent)] text-[var(--accent)] shadow-[inset_0_0_0_1px_var(--accent-soft)]'
                   : 'border-[var(--superficie)]/30 text-[var(--text-muted)] bg-[var(--superficie-muted)] hover:bg-[var(--superficie-soft)]'
               }`}
@@ -150,7 +160,11 @@ export default function RutesList() {
       </div>
 
       {ordenades.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)] py-6">Encara no hi ha rutes. Afegeix la primera des de «Nova ruta».</p>
+        <EmptyState
+          titol="Encara no has registrat cap ruta"
+          descripcio="Comença afegint la teva primera sortida."
+          accio={{ label: 'Afegir primera ruta', to: '/nova-ruta' }}
+        />
       ) : (
         <div className="border border-[var(--superficie)]/25 rounded-xl overflow-hidden bg-[var(--bg-card)] shadow-sm">
           <div className="overflow-x-auto">

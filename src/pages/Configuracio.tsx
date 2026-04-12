@@ -127,10 +127,13 @@ export default function Configuracio() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h1 className="text-xl font-semibold text-[var(--text-primary)]">Configuració</h1>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">Preferències</p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Configuració</h1>
+      </section>
 
       <section className="app-card">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Tema</h2>
+        <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Tema</h2>
         <div className="flex gap-2">
           {(['clar', 'fosc'] as const).map((tema) => (
             <button

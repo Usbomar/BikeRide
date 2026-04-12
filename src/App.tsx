@@ -16,6 +16,11 @@ import AnyVsAny from './pages/AnyVsAny';
 import Reptes from './pages/Reptes';
 import Badges from './pages/Badges';
 import Comparador from './pages/Comparador';
+import Heatmap from './pages/Heatmap';
+import Duel from './pages/Duel';
+import Meteo from './pages/Meteo';
+import Diari from './pages/Diari';
+import Streak from './pages/Streak';
 
 export default function App() {
   return (
@@ -37,6 +42,11 @@ export default function App() {
               <Route path="reptes" element={<Reptes />} />
               <Route path="badges" element={<Badges />} />
               <Route path="comparador" element={<Comparador />} />
+              <Route path="heatmap" element={<Heatmap />} />
+              <Route path="duel" element={<Duel />} />
+              <Route path="meteo" element={<Meteo />} />
+              <Route path="diari" element={<Diari />} />
+              <Route path="streak" element={<Streak />} />
               <Route path="album" element={<Album />} />
               <Route path="configuracio" element={<Configuracio />} />
             </Route>

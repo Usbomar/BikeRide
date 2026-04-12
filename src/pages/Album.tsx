@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRutes } from '../store/useRutes';
+import { EmptyState } from '../components/EmptyState';
 
 interface FotoAlbum {
   id: string;
@@ -9,17 +10,6 @@ interface FotoAlbum {
   rutaNom: string;
   data: string;
 }
-
-type TabAlbum = 'composicio' | 'visor';
-
-/** Estils de composició (graella / mosaic) */
-type ModeComposicio =
-  | 'perRuta'
-  | 'compacta'
-  | 'amplia'
-  | 'collage'
-  | 'paisatge'
-  | 'peu';
 
 function formatDate(s: string) {
   const d = new Date(s);
@@ -38,9 +28,6 @@ function safeFileName(text: string) {
     .replace(/^-|-$/g, '')
     .toLowerCase();
 }
-
-const BTN_ARROW =
-  'absolute top-1/2 -translate-y-1/2 z-10 w-[2.8125rem] h-[2.8125rem] rounded-full bg-[var(--bg-card)]/90 border-2 border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-card)] flex items-center justify-center shadow-sm';
 
 function ChevronLeft() {
   return (
@@ -70,72 +57,10 @@ function ChevronRight() {
   );
 }
 
-/** Mosaic tipus Google Fotos: barres i columnes segons proporció i variació */
-function spanCollage(
-  index: number,
-  ar: number | null
-): { col: number; row: number } {
-  if (ar == null || !Number.isFinite(ar) || ar <= 0) {
-    const m = index % 6;
-    if (m === 0) return { col: 6, row: 3 };
-    if (m === 1) return { col: 3, row: 2 };
-    return { col: 3, row: 2 };
-  }
-  if (index % 8 === 0) return { col: 6, row: 3 };
-  if (ar > 1.2) return { col: 5, row: 2 };
-  if (ar < 0.82) return { col: 2, row: 3 };
-  if (ar > 1) return { col: 4, row: 2 };
-  return { col: 3, row: 2 };
-}
-
-function spanPaisatge(ar: number | null): { col: number; row: number } {
-  if (ar == null) return { col: 3, row: 2 };
-  if (ar > 1.05) return { col: 4, row: 2 };
-  if (ar < 0.95) return { col: 2, row: 3 };
-  return { col: 3, row: 2 };
-}
-
-function spanPeu(ar: number | null): { col: number; row: number } {
-  if (ar == null) return { col: 3, row: 2 };
-  if (ar < 0.95) return { col: 3, row: 3 };
-  if (ar > 1.05) return { col: 4, row: 2 };
-  return { col: 2, row: 2 };
-}
-
-function useIsMdUp() {
-  const [ok, setOk] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true
-  );
-  useEffect(() => {
-    const m = window.matchMedia('(min-width: 768px)');
-    const fn = () => setOk(m.matches);
-    m.addEventListener('change', fn);
-    return () => m.removeEventListener('change', fn);
-  }, []);
-  return ok;
-}
-
-/** Converteix spans pensats per a 12 columnes a 6 columnes en pantalla estreta */
-function spanResponsive(col12: number, row: number, isMd: boolean): { col: number; row: number } {
-  if (isMd) return { col: Math.min(12, col12), row };
-  const c = Math.max(2, Math.min(6, Math.ceil(col12 / 2)));
-  return { col: c, row };
-}
-
-const MODES: { id: ModeComposicio; label: string; hint: string }[] = [
-  { id: 'perRuta', label: 'Per ruta', hint: 'Agrupades per sortida i data' },
-  { id: 'compacta', label: 'Petites', hint: 'Graella densa' },
-  { id: 'amplia', label: 'Grans', hint: 'Miniatures grans' },
-  { id: 'collage', label: 'Collage', hint: 'Mosaic tipus Google Fotos' },
-  { id: 'paisatge', label: 'Apaisades', hint: 'Destaca horitzontals' },
-  { id: 'peu', label: 'De peu', hint: 'Destaca verticals' },
-];
-
 export default function Album() {
   const { rutes } = useRutes();
-  const isMdUp = useIsMdUp();
 
-  const { fotosOrdenades, grupsPerRuta } = useMemo(() => {
+  const fotosOrdenades = useMemo(() => {
     const ambFotos = rutes.filter((r) => (r.fotos?.length ?? 0) > 0);
     const rutesOrdenades = [...ambFotos].sort((a, b) => {
       const ta = new Date(a.data).getTime();
@@ -144,7 +69,7 @@ export default function Album() {
       return a.nom.localeCompare(b.nom, 'ca');
     });
 
-    const flat: FotoAlbum[] = rutesOrdenades.flatMap((r) =>
+    return rutesOrdenades.flatMap((r) =>
       (r.fotos ?? []).map((f) => ({
         id: f.id,
         rutaId: r.id,
@@ -154,30 +79,54 @@ export default function Album() {
         data: r.data,
       }))
     );
-
-    const grups = rutesOrdenades.map((r) => ({
-      rutaId: r.id,
-      rutaNom: r.nom,
-      data: r.data,
-      fotos: (r.fotos ?? []).map((f) => ({
-        id: f.id,
-        rutaId: r.id,
-        url: f.url,
-        caption: f.caption,
-        rutaNom: r.nom,
-        data: r.data,
-      })),
-    }));
-
-    return { fotosOrdenades: flat, grupsPerRuta: grups };
   }, [rutes]);
 
-  const [tab, setTab] = useState<TabAlbum>('composicio');
-  const [modeComposicio, setModeComposicio] = useState<ModeComposicio>('collage');
+  const grupsPerMes = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        clau: string;
+        label: string;
+        any: number;
+        fotos: FotoAlbum[];
+      }
+    >();
+
+    fotosOrdenades.forEach((f) => {
+      const d = new Date(f.data + 'T12:00:00');
+      const clau = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('ca-ES', {
+        month: 'long',
+        year: 'numeric',
+      });
+      const any = d.getFullYear();
+      const prev = map.get(clau) ?? { clau, label, any, fotos: [] };
+      prev.fotos.push(f);
+      map.set(clau, prev);
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.clau.localeCompare(a.clau));
+  }, [fotosOrdenades]);
+
+  const anysDisponibles = useMemo(
+    () =>
+      Array.from(new Set(fotosOrdenades.map((f) => new Date(f.data + 'T12:00:00').getFullYear()))).sort(
+        (a, b) => b - a
+      ),
+    [fotosOrdenades]
+  );
+
+  const [anyFiltre, setAnyFiltre] = useState<number | null>(null);
+
+  const grupsVisibles = useMemo(
+    () => (anyFiltre ? grupsPerMes.filter((g) => g.any === anyFiltre) : grupsPerMes),
+    [grupsPerMes, anyFiltre]
+  );
+
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
-  const [aspectes, setAspectes] = useState<Record<string, number>>({});
+  const [, setAspectes] = useState<Record<string, number>>({});
 
   const setAspect = useCallback((id: string, w: number, h: number) => {
     if (w <= 0 || h <= 0) return;
@@ -190,20 +139,15 @@ export default function Album() {
 
   const foto = fotosOrdenades[index];
 
-  const next = () => {
+  const next = useCallback(() => {
     if (fotosOrdenades.length === 0) return;
     setIndex((i) => (i + 1) % fotosOrdenades.length);
-  };
+  }, [fotosOrdenades.length]);
 
-  const prev = () => {
+  const prev = useCallback(() => {
     if (fotosOrdenades.length === 0) return;
     setIndex((i) => (i - 1 + fotosOrdenades.length) % fotosOrdenades.length);
-  };
-
-  const obrirVisorAmbIndex = (i: number) => {
-    setIndex(i);
-    setTab('visor');
-  };
+  }, [fotosOrdenades.length]);
 
   const onDragStart = (x: number) => {
     setDragStartX(x);
@@ -218,272 +162,226 @@ export default function Album() {
     setDragStartX(null);
   };
 
-  const indexGlobal = (rutaId: string, fotoId: string) =>
-    fotosOrdenades.findIndex((f) => f.rutaId === rutaId && f.id === fotoId);
-
-  const renderThumb = (f: FotoAlbum, gi: number, extraClass: string) => (
-    <button
-      key={`${f.rutaId}-${f.id}`}
-      type="button"
-      onClick={() => obrirVisorAmbIndex(gi)}
-      className={`group relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-sm transition-all hover:ring-2 hover:ring-[var(--accent)] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] ${extraClass}`}
-      title={`${f.rutaNom} — obrir al visor`}
-    >
-      <img
-        src={f.url}
-        alt={f.caption || f.rutaNom}
-        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        loading="lazy"
-        onLoad={(e) => {
-          const el = e.currentTarget;
-          setAspect(f.id, el.naturalWidth, el.naturalHeight);
-        }}
-      />
-      <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-2 py-2 text-left opacity-0 transition-opacity group-hover:opacity-100">
-        <span className="line-clamp-1 text-[11px] font-medium text-white">{f.rutaNom}</span>
-        {f.caption && <span className="line-clamp-1 text-[10px] text-white/85">{f.caption}</span>}
-      </span>
-    </button>
-  );
+  useEffect(() => {
+    if (!expanded) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'Escape') setExpanded(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [expanded, next, prev]);
 
   return (
-    <div className="space-y-4">
-      <section>
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">Galeria</p>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">Àlbum</h1>
-        <p className="text-sm text-[var(--text-secondary)]">
-          Composició amb diversos estils (tipus Google Fotos) o visor per passar fotos.
-        </p>
+    <div>
+      <section className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+            Galeria
+          </p>
+          <h1 className="text-2xl font-black tracking-tight text-[var(--text-primary)]">Àlbum</h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            {fotosOrdenades.length} fotos · {grupsPerMes.length} mesos
+          </p>
+        </div>
+        {fotosOrdenades.length > 0 && (
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {anysDisponibles.map((a) => (
+              <button
+                key={a}
+                type="button"
+                onClick={() => setAnyFiltre(a === anyFiltre ? null : a)}
+                className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                  anyFiltre === a
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'border border-[var(--border)] bg-[var(--superficie-muted)] text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)]'
+                }`}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {fotosOrdenades.length === 0 ? (
-        <div className="app-card py-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">Encara no hi ha fotos a les rutes.</p>
-        </div>
+        <EmptyState
+          titol="Encara no hi ha fotos"
+          descripcio="Afegeix fotos des del formulari de cada ruta per omplir la galeria."
+          accio={{ label: 'Anar a rutes', to: '/rutes' }}
+        />
       ) : (
         <>
-          <div className="flex flex-wrap gap-2 border-b border-[var(--border)] pb-2">
-            <button
-              type="button"
-              onClick={() => setTab('composicio')}
-              className={`px-4 py-2 rounded-t-lg text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === 'composicio'
-                  ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-soft)]/40'
-                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--superficie-soft)]'
-              }`}
-            >
-              Composició
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('visor')}
-              className={`px-5 py-2.5 rounded-t-lg text-base font-semibold border-b-2 -mb-px transition-colors ${
-                tab === 'visor'
-                  ? 'border-[var(--accent2)] text-[var(--accent2)] bg-[var(--accent2-soft)]'
-                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--accent2)] hover:bg-[var(--accent2-soft)]/60'
-              }`}
-            >
-              Passar fotos
-            </button>
-          </div>
-
-          {tab === 'composicio' && (
-            <>
-              <div className="app-card py-3">
-                <p className="text-xs font-semibold text-[var(--text-primary)] mb-2">Estil de composició</p>
-                <div className="flex flex-wrap gap-2">
-                  {MODES.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setModeComposicio(m.id)}
-                      title={m.hint}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-colors ${
-                        modeComposicio === m.id
-                          ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
-                          : 'border-[var(--superficie)]/30 text-[var(--text-secondary)] bg-[var(--superficie-muted)] hover:bg-[var(--superficie-soft)]'
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-[10px] text-[var(--text-muted)]">{MODES.find((x) => x.id === modeComposicio)?.hint}</p>
-              </div>
-
-              {modeComposicio === 'perRuta' && (
-                <section className="space-y-6">
-                  {grupsPerRuta.map((grup) => (
-                    <div key={grup.rutaId} className="app-card">
-                      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                        <h2 className="text-sm font-semibold text-[var(--text-primary)]">{grup.rutaNom}</h2>
-                        <span className="text-xs text-[var(--accent2)]">{formatDate(grup.data)}</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {grup.fotos.map((f) => {
-                          const gi = indexGlobal(grup.rutaId, f.id);
-                          return renderThumb(f, gi, 'aspect-square');
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </section>
-              )}
-
-              {modeComposicio === 'compacta' && (
-                <section className="app-card">
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-1.5">
-                    {fotosOrdenades.map((f, i) => renderThumb(f, i, 'aspect-square min-h-0'))}
-                  </div>
-                </section>
-              )}
-
-              {modeComposicio === 'amplia' && (
-                <section className="app-card">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-                    {fotosOrdenades.map((f, i) => renderThumb(f, i, 'aspect-[4/3] min-h-[200px] md:min-h-[260px]'))}
-                  </div>
-                </section>
-              )}
-
-              {(modeComposicio === 'collage' || modeComposicio === 'paisatge' || modeComposicio === 'peu') && (
-                <section className="app-card overflow-hidden">
-                  <div
-                    className="grid grid-cols-6 md:grid-cols-12 [grid-auto-rows:minmax(72px,auto)] md:[grid-auto-rows:minmax(88px,auto)]"
-                    style={{ gridAutoFlow: 'dense', gap: modeComposicio === 'collage' ? '10px' : undefined }}
-                  >
-                    {fotosOrdenades.map((f, i) => {
-                      const gi = i;
-                      const ar = aspectes[f.id] ?? null;
-                      let col12 = 3;
-                      let row = 2;
-                      if (modeComposicio === 'collage') {
-                        const s = spanCollage(i, ar);
-                        col12 = s.col;
-                        row = s.row;
-                      } else if (modeComposicio === 'paisatge') {
-                        const s = spanPaisatge(ar);
-                        col12 = s.col;
-                        row = s.row;
-                      } else {
-                        const s = spanPeu(ar);
-                        col12 = s.col;
-                        row = s.row;
-                      }
-                      const { col, row: r } = spanResponsive(col12, row, isMdUp);
-                      return (
-                        <button
-                          key={`${f.rutaId}-${f.id}`}
-                          type="button"
-                          onClick={() => obrirVisorAmbIndex(gi)}
-                          className="group relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-sm transition-all hover:ring-2 hover:ring-[var(--accent)] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] min-h-[72px] md:min-h-[88px]"
-                          style={{
-                            gridColumn: `span ${col} / span ${col}`,
-                            gridRow: `span ${r} / span ${r}`,
-                          }}
-                          title={`${f.rutaNom} — obrir al visor`}
-                        >
-                          <img
-                            src={f.url}
-                            alt={f.caption || f.rutaNom}
-                            className="h-full w-full object-contain bg-[var(--bg-card)] transition-transform duration-300 group-hover:scale-[1.01]"
-                            loading="lazy"
-                            onLoad={(e) => {
-                              const el = e.currentTarget;
-                              setAspect(f.id, el.naturalWidth, el.naturalHeight);
-                            }}
-                          />
-                          <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-1.5 py-1 opacity-0 transition-opacity group-hover:opacity-100">
-                            <span className="line-clamp-1 text-[10px] text-white">{f.rutaNom}</span>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-3 text-[10px] text-[var(--text-muted)]">
-                    Les mides del mosaic s’ajusten quan es carrega cada foto (proporció apaisada o de peu).
-                  </p>
-                </section>
-              )}
-            </>
-          )}
-
-          {tab === 'visor' && foto && (
-            <section className="app-card">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-xs text-[var(--text-muted)]">
-                  Foto {index + 1} de {fotosOrdenades.length}
-                </div>
-                <div className="text-xs text-[var(--accent2)] font-medium">
-                  {foto.rutaNom} · {formatDate(foto.data)}
-                </div>
+          {grupsVisibles.map((grup) => (
+            <section key={grup.clau} className="mb-10">
+              <div className="mb-3 flex items-baseline gap-3">
+                <h2 className="text-lg font-bold capitalize text-[var(--text-primary)]">{grup.label}</h2>
+                <span className="text-xs text-[var(--text-muted)]">
+                  {grup.fotos.length} foto{grup.fotos.length !== 1 ? 's' : ''}
+                </span>
               </div>
 
               <div
-                className="relative rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg)]"
-                onMouseDown={(e) => onDragStart(e.clientX)}
-                onMouseUp={(e) => onDragEnd(e.clientX)}
-                onMouseLeave={() => setDragStartX(null)}
-                onTouchStart={(e) => onDragStart(e.touches[0].clientX)}
-                onTouchEnd={(e) => onDragEnd(e.changedTouches[0].clientX)}
+                className="grid gap-1"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gridAutoRows: '140px',
+                }}
               >
-                <button type="button" onClick={prev} className={`${BTN_ARROW} left-2`} title="Foto anterior">
-                  <ChevronLeft />
-                </button>
-                <img
-                  src={foto.url}
-                  alt={foto.caption || foto.rutaNom}
-                  className="w-full max-h-[70vh] object-contain bg-[var(--bg)]"
-                />
-                <button type="button" onClick={next} className={`${BTN_ARROW} right-2`} title="Foto següent">
-                  <ChevronRight />
-                </button>
-              </div>
-
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-[var(--text-secondary)]">{foto.caption || 'Sense descripció'}</p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setExpanded(true)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--superficie)]/35 text-[var(--text-primary)] bg-[var(--superficie-muted)] hover:bg-[var(--superficie-soft)]"
-                  >
-                    Ampliar
-                  </button>
-                  <a
-                    href={foto.url}
-                    download={`${safeFileName(foto.rutaNom)}-${index + 1}.jpg`}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-[var(--accent)] hover:opacity-90 no-underline"
-                  >
-                    Descarregar
-                  </a>
-                </div>
+                {grup.fotos.map((f, i) => {
+                  const esPrimera = i === 0 && grup.fotos.length >= 3;
+                  return (
+                    <button
+                      key={`${f.rutaId}-${f.id}`}
+                      type="button"
+                      onClick={() => {
+                        const gi = fotosOrdenades.findIndex((x) => x.id === f.id && x.rutaId === f.rutaId);
+                        setIndex(gi);
+                        setExpanded(true);
+                      }}
+                      className="group relative overflow-hidden rounded-lg bg-[var(--bg-card)] transition-all duration-200 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                      style={esPrimera ? { gridColumn: 'span 2', gridRow: 'span 2' } : {}}
+                    >
+                      <img
+                        src={f.url}
+                        alt={f.caption || f.rutaNom}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        onLoad={(e) => {
+                          const el = e.currentTarget;
+                          setAspect(f.id, el.naturalWidth, el.naturalHeight);
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/0 transition-colors duration-200 group-hover:bg-black/10" />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <p className="truncate text-[10px] font-medium leading-tight text-white">{f.rutaNom}</p>
+                        <p className="truncate text-[9px] text-white/75">{formatDate(f.data)}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </section>
-          )}
+          ))}
         </>
       )}
 
       {expanded && foto && (
         <div
-          className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex flex-col bg-black/95"
           onClick={() => setExpanded(false)}
+          role="presentation"
         >
-          <div className="relative max-w-6xl w-full">
+          <div
+            className="flex shrink-0 items-center justify-between px-6 py-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <p className="text-sm font-semibold text-white">{foto.rutaNom}</p>
+              <p className="mt-0.5 text-xs text-white/50">
+                {new Date(foto.data + 'T12:00:00').toLocaleDateString('ca-ES', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+                {foto.caption ? ` · ${foto.caption}` : ''}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-white/40">
+                {index + 1} / {fotosOrdenades.length}
+              </span>
+              <a
+                href={foto.url}
+                download={`${safeFileName(foto.rutaNom)}-${index + 1}.jpg`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-white/60 no-underline transition-colors hover:text-white"
+                title="Descarregar"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </a>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="relative flex min-h-0 flex-1 items-center justify-center px-16" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
-              onClick={() => setExpanded(false)}
-              className="absolute right-2 top-2 z-10 w-9 h-9 rounded-full bg-black/60 text-white border border-white/30"
-              title="Tancar"
+              onClick={prev}
+              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
             >
-              ✕
+              <ChevronLeft />
             </button>
-            <img
-              src={foto.url}
-              alt={foto.caption || foto.rutaNom}
-              className="w-full max-h-[85vh] object-contain rounded-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div
+              className="flex max-h-full max-w-full items-center justify-center"
+              onMouseDown={(e) => onDragStart(e.clientX)}
+              onMouseUp={(e) => onDragEnd(e.clientX)}
+              onMouseLeave={() => setDragStartX(null)}
+              onTouchStart={(e) => onDragStart(e.touches[0].clientX)}
+              onTouchEnd={(e) => onDragEnd(e.changedTouches[0].clientX)}
+            >
+              <img
+                src={foto.url}
+                alt={foto.caption || foto.rutaNom}
+                className="max-h-full max-w-full select-none rounded-lg object-contain"
+                style={{ maxHeight: 'calc(100vh - 180px)' }}
+                draggable={false}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={next}
+              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+            >
+              <ChevronRight />
+            </button>
+          </div>
+
+          <div className="flex shrink-0 gap-2 overflow-x-auto px-6 py-3" onClick={(e) => e.stopPropagation()}>
+            {fotosOrdenades.map((f2, i2) => (
+              <button
+                key={`${f2.rutaId}-${f2.id}`}
+                type="button"
+                onClick={() => setIndex(i2)}
+                className={`h-14 w-14 shrink-0 overflow-hidden rounded-md transition-all duration-150 ${
+                  i2 === index ? 'scale-110 ring-2 ring-white' : 'opacity-50 hover:opacity-80'
+                }`}
+              >
+                <img src={f2.url} alt={f2.rutaNom} className="h-full w-full object-cover" />
+              </button>
+            ))}
           </div>
         </div>
       )}

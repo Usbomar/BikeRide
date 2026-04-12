@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRutes } from '../store/useRutes';
+import { EmptyState } from '../components/EmptyState';
 
 type MetricaRepte = 'km' | 'desnivell' | 'sortides';
 
@@ -316,15 +317,35 @@ export default function Reptes() {
       .sort((a, b) => b.pct - a.pct);
   }, [reptesAssolits, valorActual]);
 
+  if (rutes.length === 0) {
+    return (
+      <div>
+        <section className="mb-6">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">Objectius</p>
+          <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+            Reptes i objectius
+          </h1>
+        </section>
+        <EmptyState
+          titol="Sense rutes encara"
+          descripcio="Afegeix sortides per fer seguiment dels reptes."
+          accio={{ label: 'Nova ruta', to: '/nova-ruta' }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative pb-24">
-      <p className="mb-0.5 text-xs font-medium uppercase tracking-wider text-[var(--accent)]">Objectius</p>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
-        Reptes i objectius
-      </h1>
-      <p className="mb-6 text-sm text-[var(--text-secondary)]">
-        {nombreAssolits} de {totalReptes} reptes assolits
-      </p>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">Objectius</p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+          Reptes i objectius
+        </h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          {nombreAssolits} de {totalReptes} reptes assolits
+        </p>
+      </section>
 
       <div className="mb-8 flex flex-wrap gap-3">
         <div className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2">

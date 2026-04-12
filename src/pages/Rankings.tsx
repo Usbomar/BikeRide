@@ -13,6 +13,7 @@ import type { Ruta } from '../types/ruta';
 import { estadistiquesGlobals, distribucioPerComarca, totalHores } from '../utils/estadistiques';
 import { filtrarRutesAquestMesFinsAvui, resumRutes } from '../utils/informes';
 import { formatKm } from '../utils/format';
+import { EmptyState } from '../components/EmptyState';
 
 const COLORS = ['var(--accent)', 'var(--accent2)', 'var(--superficie)', '#059669', '#0f766e', '#64748b'];
 
@@ -198,9 +199,9 @@ export default function Rankings() {
     maxVal: number;
   }) => (
     <div className="app-card">
-      <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">{title}</h2>
+      <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">{title}</h2>
       {items.length === 0 ? (
-        <p className="text-xs text-[var(--text-muted)]">Sense dades</p>
+        <EmptyState compact titol="Sense dades" />
       ) : (
         <ol className="space-y-3 list-none m-0 p-0">
           {items.flatMap((r, i) => {
@@ -269,7 +270,7 @@ export default function Rankings() {
     if (id === 'resum') {
       return (
         <section key="resum">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Resum global</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Resum global</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <div className="app-card border-l-4 border-l-[var(--accent)]">
               <div className="text-xl font-bold text-[var(--accent)] tabular-nums">
@@ -347,7 +348,7 @@ export default function Rankings() {
     if (id === 'podis' && perDistancia.length >= 3) {
       return (
         <section key="podis">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Podis · Top 3 distància</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Podis · Top 3 distància</h2>
           <div
             className="rounded-2xl px-4 py-6 md:px-8 md:py-8"
             style={{
@@ -383,7 +384,7 @@ export default function Rankings() {
     if (id === 'principals') {
       return (
         <section key="principals">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Rànquings principals</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Rànquings principals</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Block
               title="Top 10 distància"
@@ -477,7 +478,7 @@ export default function Rankings() {
     if (id === 'comarques' && perComarca.length > 0) {
       return (
         <section key="comarques">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
             Estadístiques per comarques
           </h2>
           <p className="text-xs text-[var(--accent2)] mb-2">
@@ -575,7 +576,7 @@ export default function Rankings() {
     if (id === 'altres') {
       return (
         <section key="altres">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Altres rànquings</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Altres rànquings</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Block
               title="Top 10 velocitat màxima"
@@ -599,16 +600,38 @@ export default function Rankings() {
     return null;
   };
 
+  if (rutes.length === 0) {
+    return (
+      <div>
+        <section className="mb-6">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+            Rànquings i estadístiques
+          </p>
+          <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+            Els teus rècords i tendències
+          </h1>
+        </section>
+        <EmptyState
+          titol="Encara no hi ha rutes"
+          descripcio="Afegeix sortides per veure rànquings i podis."
+          accio={{ label: 'Nova ruta', to: '/nova-ruta' }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <section>
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
           Rànquings i estadístiques
         </p>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
           Els teus rècords i tendències
         </h1>
-        <p className="text-sm text-[var(--text-secondary)]">Ordenat per rellevància: el més important primer.</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          Ordenat per rellevància: el més important primer.
+        </p>
       </section>
       {blocsOrdenats.map((b) => renderBloc(b.id))}
     </div>

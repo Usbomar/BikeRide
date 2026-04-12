@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-lea
 import { useRutes } from '../store/useRutes';
 import type { Ruta, TipusRuta } from '../types/ruta';
 import { COMARCA_COORDS } from '../data/comarques-coords';
+import { EmptyState } from '../components/EmptyState';
 
 // TODO: si ruta.gpxData existeix, renderitzar Polyline parsejant les coordenades del GPX amb un parser lleuger
 
@@ -24,8 +25,8 @@ function offsetCoord(base: [number, number], index: number, total: number): [num
 
 function colorPerTipus(tipus: TipusRuta | undefined): string {
   if (tipus === 'carretera') return '#378ADD';
-  if (tipus === 'mtb') return '#1D9E75';
-  if (tipus === 'gravel') return '#BA7517';
+  if (tipus === 'mtb') return 'var(--accent)';
+  if (tipus === 'gravel') return 'var(--accent2)';
   return '#888780';
 }
 
@@ -79,15 +80,17 @@ export default function Mapa() {
 
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)] mb-0.5">
-        Activitat geogràfica
-      </p>
-      <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">
-        Mapa de rutes
-      </h1>
-      <p className="text-sm text-[var(--text-secondary)] mb-4">
-        {rutes.length} rutes registrades · {comarquesExplorades} comarques explorades
-      </p>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+          Activitat geogràfica
+        </p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+          Mapa de rutes
+        </h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          {rutes.length} rutes registrades · {comarquesExplorades} comarques explorades
+        </p>
+      </section>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {FILTRES.map((f) => (
@@ -112,9 +115,12 @@ export default function Mapa() {
       >
         {rutes.length === 0 ? (
           <div className="flex h-full min-h-[520px] items-center justify-center px-4">
-            <p className="text-center text-sm text-[var(--text-muted)]">
-              Encara no hi ha rutes per mostrar al mapa
-            </p>
+            <EmptyState
+              compact
+              titol="Encara no hi ha rutes al mapa"
+              descripcio="Afegeix rutes amb comarca de destí per veure-les al mapa."
+              accio={{ label: 'Nova ruta', to: '/nova-ruta' }}
+            />
           </div>
         ) : !leafletDisponible ? (
           <div className="flex h-full min-h-[520px] items-center justify-center">
@@ -143,7 +149,7 @@ export default function Mapa() {
                   pathOptions={{
                     fillColor: `rgba(29, 158, 117, ${ratio * 0.6 + 0.15})`,
                     fillOpacity: 1,
-                    color: '#0F6E56',
+                    color: 'var(--accent-hover)',
                     weight: 1.5,
                     opacity: ratio * 0.8 + 0.2,
                   }}
@@ -216,7 +222,7 @@ export default function Mapa() {
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-secondary)]">
         <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: '#1D9E75' }} />
+          <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: 'var(--accent)' }} />
           MTB
         </span>
         <span className="inline-flex items-center gap-1.5">
@@ -224,7 +230,7 @@ export default function Mapa() {
           Carretera
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: '#BA7517' }} />
+          <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: 'var(--accent2)' }} />
           Gravel
         </span>
         <span className="inline-flex items-center gap-1.5">

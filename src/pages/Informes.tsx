@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import type { Ruta } from '../types/ruta';
 import { getPeriodes, filtrarRutesPerPeriode, resumRutes, type Periode } from '../utils/informes';
+import { EmptyState } from '../components/EmptyState';
 
 const PERIODES: { value: Periode; label: string }[] = [
   { value: 'mensual', label: 'Mensual' },
@@ -160,9 +161,30 @@ export default function Informes() {
     return best;
   }, [dades]);
 
+  if (rutes.length === 0) {
+    return (
+      <div>
+        <section className="mb-6">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
+            Estadístiques
+          </p>
+          <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Informes</h1>
+        </section>
+        <EmptyState
+          titol="Sense dades per analitzar"
+          descripcio="Afegeix rutes per veure l’evolució per període."
+          accio={{ label: 'Nova ruta', to: '/nova-ruta' }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Informes</h1>
+      <section className="mb-6">
+        <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">Estadístiques</p>
+        <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Informes</h1>
+      </section>
 
       <div className="flex flex-wrap gap-2 mb-6">
         {PERIODES.map((p) => (
