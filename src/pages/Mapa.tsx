@@ -1,12 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Polyline } from 'react-leaflet';
 import { useRutes } from '../store/useRutes';
 import type { Ruta, TipusRuta } from '../types/ruta';
 import { COMARCA_COORDS } from '../data/comarques-coords';
 import { EmptyState } from '../components/EmptyState';
 
-// TODO: si ruta.gpxData existeix, renderitzar Polyline parsejant les coordenades del GPX amb un parser lleuger
+/**
+ * Sortida habitual de les rutes: carrer Calassanç Duran, Sabadell [lat, lng].
+ * Els destins es modelen com el centre de la comarca del camp `zona` (vegeu COMARCA_COORDS).
+ */
+const PUNT_SORTIDA_SABADELL: [number, number] = [41.5435, 2.1092];
 
 type FiltreTipus = 'tots' | 'mtb' | 'carretera' | 'gravel';
 
@@ -78,6 +82,80 @@ export default function Mapa() {
 
   const comarquesExplorades = statsPerComarca.size;
 
+  const zonasUniques = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rutesPerMarcadors) {
+      const z = r.zona?.trim();
+      if (z && COMARCA_COORDS[z]) set.add(z);
+    }
+    return [...set].sort();
+  }, [rutesPerMarcadors]);
+
+  const clauZonas = useMemo(() => zonasUniques.join('|'), [zonasUniques]);
+
+  const [tracBiciPerComarca, setTracBiciPerComarca] = useState<Record<string, [number, number][] | null>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const ac = new AbortController();
+    const [lat0, lng0] = PUNT_SORTIDA_SABADELL;
+
+    function extreureCoordenadesGeoJSON(data: {
+      routes?: { geometry?: { type?: string; coordinates?: [number, number][] } }[];
+    }): [number, number][] | null {
+      const coords = data.routes?.[0]?.geometry?.coordinates;
+      if (!coords?.length) return null;
+      return coords.map((c) => [c[1], c[0]] as [number, number]);
+    }
+
+    async function fetchRutaBici(comarca: string) {
+      const dest = COMARCA_COORDS[comarca];
+      if (!dest) return;
+      const [lat1, lng1] = dest;
+      const base = `https://router.project-osrm.org/route/v1`;
+      const urls = [
+        `${base}/cycling/${lng0},${lat0};${lng1},${lat1}?overview=full&geometries=geojson`,
+        `${base}/foot/${lng0},${lat0};${lng1},${lat1}?overview=full&geometries=geojson`,
+      ];
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { signal: ac.signal });
+          if (!res.ok) continue;
+          const data = (await res.json()) as Parameters<typeof extreureCoordenadesGeoJSON>[0];
+          const leaflet = extreureCoordenadesGeoJSON(data);
+          if (leaflet?.length) {
+            if (!cancelled) {
+              setTracBiciPerComarca((prev) => ({ ...prev, [comarca]: leaflet }));
+            }
+            return;
+          }
+        } catch {
+          /* següent perfil o recta */
+        }
+      }
+      const recta: [number, number][] = [
+        [lat0, lng0],
+        [lat1, lng1],
+      ];
+      if (!cancelled) {
+        setTracBiciPerComarca((prev) => ({ ...prev, [comarca]: recta }));
+      }
+    }
+
+    setTracBiciPerComarca({});
+    (async () => {
+      for (const com of zonasUniques) {
+        if (cancelled) break;
+        await fetchRutaBici(com);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [clauZonas]);
+
   return (
     <div>
       <section className="mb-6">
@@ -137,6 +215,38 @@ export default function Mapa() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <CircleMarker
+              center={PUNT_SORTIDA_SABADELL}
+              radius={9}
+              pathOptions={{
+                fillColor: 'var(--accent2)',
+                fillOpacity: 0.95,
+                color: '#fff',
+                weight: 2,
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -6]}>
+                <span className="text-xs font-medium">Sortida: Calassanç Duran, Sabadell</span>
+              </Tooltip>
+            </CircleMarker>
+            {zonasUniques.map((comarca) => {
+              const positions = tracBiciPerComarca[comarca];
+              if (!positions || positions.length < 2) return null;
+              return (
+                <Polyline
+                  key={`trace-${comarca}`}
+                  positions={positions}
+                  pathOptions={{
+                    color: colorPerTipus(
+                      rutesPerMarcadors.find((r) => r.zona?.trim() === comarca)?.tipus
+                    ),
+                    weight: 3,
+                    opacity: 0.72,
+                    lineJoin: 'round',
+                  }}
+                />
+              );
+            })}
             {Array.from(statsPerComarca.entries()).map(([comarca, stats]) => {
               const coords = COMARCA_COORDS[comarca];
               if (!coords) return null;
