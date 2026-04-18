@@ -3,11 +3,17 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 const NAV_GRUPS = [
   {
-    label: 'Rutes',
-    items: [{ to: '/rutes', label: 'Les rutes' }],
+    label: 'Les meves rutes',
+    description: 'Les teves sortides, diari i fotos',
+    items: [
+      { to: '/rutes', label: 'Les rutes' },
+      { to: '/diari', label: 'Diari' },
+      { to: '/album', label: 'Àlbum' },
+    ],
   },
   {
-    label: 'Anàlisi',
+    label: 'Mètriques i informes',
+    description: 'Xifres, rànquings i comparatives',
     items: [
       { to: '/informes', label: 'Informes' },
       { to: '/rankings', label: 'Rànquings' },
@@ -17,22 +23,22 @@ const NAV_GRUPS = [
     ],
   },
   {
-    label: 'Explorar',
+    label: 'Mapa i territori',
+    description: 'Mapa, comarques i temps',
     items: [
       { to: '/mapa', label: 'Mapa' },
       { to: '/comarques', label: 'Comarques' },
+      { to: '/meteo', label: 'Meteo' },
     ],
   },
   {
-    label: 'Nosaltres',
+    label: 'Reptes i joc',
+    description: 'Motivació i reptes',
     items: [
-      { to: '/diari', label: 'Diari' },
       { to: '/reptes', label: 'Reptes' },
       { to: '/badges', label: 'Badges' },
       { to: '/streak', label: 'Streak' },
       { to: '/duel', label: 'Duel' },
-      { to: '/meteo', label: 'Meteo' },
-      { to: '/album', label: 'Àlbum' },
     ],
   },
 ] as const;
@@ -122,10 +128,6 @@ export default function Layout() {
           </Link>
 
           <div className="relative hidden min-w-0 flex-1 items-center gap-1 md:flex">
-            <NavLink to="/" end className={navLinkIniciClass}>
-              Inici
-            </NavLink>
-
             <div ref={navDesktopRef} className="relative flex items-center gap-1">
               {NAV_GRUPS.map((grup) => (
                 <div key={grup.label} className="relative">
@@ -147,7 +149,7 @@ export default function Layout() {
                   </button>
 
                   {grupObert === grup.label && (
-                    <div className="app-card absolute left-0 top-full z-50 mt-1 min-w-[160px] border border-[var(--border)] p-1 shadow-lg">
+                    <div className="app-card absolute left-0 top-full z-50 mt-1 min-w-[200px] border border-[var(--border)] p-1 shadow-lg">
                       {grup.items.map((item) => (
                         <NavLink
                           key={item.to}
@@ -281,8 +283,13 @@ export default function Layout() {
 
               {NAV_GRUPS.map((grup) => (
                 <div key={grup.label} className="mb-6 last:mb-0">
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                    {grup.label}
+                  <div className="mb-2">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                      {grup.label}
+                    </div>
+                    {grup.description ? (
+                      <p className="mt-1 text-[11px] leading-snug text-[var(--text-muted)]">{grup.description}</p>
+                    ) : null}
                   </div>
                   <ul className="space-y-0.5">
                     {grup.items.map((item) => (

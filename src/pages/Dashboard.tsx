@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../components/EmptyState';
+import DashboardHeroIllustration from '../components/illustrations/DashboardHeroIllustration';
 import { useRutes } from '../store/useRutes';
 import {
   AreaChart,
@@ -286,25 +287,30 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <section className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="mb-1 text-[11px] font-medium uppercase tracking-widest text-[var(--accent)]">
-            {new Date().toLocaleDateString('ca-ES', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            })}
-          </p>
-          <h1 className="text-3xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
-            Benvinguts de nou
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            {stats.sortides} sortides · {stats.distancia.toFixed(0)} km acumulats
-          </p>
+      <section className="mb-8 flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:gap-8">
+          <div className="min-w-0 flex-1">
+            <p className="mb-1 text-[11px] font-medium uppercase tracking-widest text-[var(--accent)]">
+              {new Date().toLocaleDateString('ca-ES', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
+            </p>
+            <h1 className="text-3xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+              Benvinguts de nou
+            </h1>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              {stats.sortides} sortides · {stats.distancia.toFixed(0)} km acumulats
+            </p>
+          </div>
+          <div className="mx-auto w-full max-w-[260px] shrink-0 text-[var(--accent)] sm:mx-0 md:max-w-[min(100%,280px)]">
+            <DashboardHeroIllustration className="h-auto w-full drop-shadow-sm" />
+          </div>
         </div>
         <Link
           to="/nova-ruta"
-          className="flex shrink-0 items-center gap-2 rounded-xl bg-[var(--accent2)] px-4 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+          className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--accent2)] px-4 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)] sm:w-auto sm:justify-start"
         >
           <svg
             width="14"
