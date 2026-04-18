@@ -109,12 +109,11 @@ export default function RutaForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit && id) {
-      updateRuta(id, { ...form, mapes: form.mapes, fotos: form.fotos });
-    } else {
-      addRuta({ ...form, mapes: form.mapes, fotos: form.fotos });
-    }
-    navigate('/rutes');
+    const ok =
+      isEdit && id
+        ? updateRuta(id, { ...form, mapes: form.mapes, fotos: form.fotos })
+        : addRuta({ ...form, mapes: form.mapes, fotos: form.fotos });
+    if (ok) navigate('/rutes');
   };
 
   return (

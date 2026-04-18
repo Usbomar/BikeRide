@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Ruta } from '../types/ruta';
 import { buildBackupFile, triggerDownloadJson, type BikeRideBackupFile } from '../utils/backup';
 
@@ -17,6 +17,12 @@ function loadRutes(): Ruta[] {
 
 function saveRutes(rutes: Ruta[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(rutes));
+}
+
+type RutesPersistInput = Ruta[] | ((prev: Ruta[]) => Ruta[]);
+
+function resolveRutesPersist(prev: Ruta[], input: RutesPersistInput): Ruta[] {
+  return typeof input === 'function' ? input(prev) : input;
 }
 
 export type Densitat = 'compact' | 'normal';
@@ -206,9 +212,10 @@ export interface ImportBackupOptions {
 
 interface RutesContextValue {
   rutes: Ruta[];
-  addRuta: (r: Omit<Ruta, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateRuta: (id: string, r: Partial<Ruta>) => void;
-  deleteRuta: (id: string) => void;
+  /** Retorna false si localStorage ha rebutjat el desament (p. ex. quota). */
+  addRuta: (r: Omit<Ruta, 'id' | 'createdAt' | 'updatedAt'>) => boolean;
+  updateRuta: (id: string, r: Partial<Ruta>) => boolean;
+  deleteRuta: (id: string) => boolean;
   getRuta: (id: string) => Ruta | undefined;
   config: Configuracio;
   setConfig: (c: Partial<Configuracio>) => void;
@@ -223,33 +230,61 @@ const RutesContext = createContext<RutesContextValue | null>(null);
 export function RutesProvider({ children }: { children: ReactNode }) {
   const [rutes, setRutes] = useState<Ruta[]>(loadRutes);
   const [config, setConfigState] = useState<Configuracio>(loadConfig);
+  /** Còpia síncrona per calcular el següent snapshot sense dependre de closures ni posar efectes secundaris dins de l’actualitzador de useState (React 19 / Strict Mode pot invocar-lo dues vegades). */
+  const rutesRef = useRef<Ruta[]>(rutes);
+  rutesRef.current = rutes;
 
-  const persistRutes = useCallback((next: Ruta[]) => {
+  /** Desa a partir de l’estat més recent (ref) i només actualitza React si localStorage accepta l’escriptura. */
+  const persistRutes = useCallback((input: RutesPersistInput): boolean => {
+    const prev = rutesRef.current;
+    const next = resolveRutesPersist(prev, input);
+    try {
+      saveRutes(next);
+    } catch (e) {
+      console.error('BikeRide: no s’han pogut desar les rutes', e);
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+        window.alert(
+          'No hi ha prou espai al navegador per desar les dades (sovint per fotos o mapes molt grans en base64). Prova amb menys imatges, imatges més petites o exporta una còpia i neteja rutes antigues.'
+        );
+      } else {
+        window.alert('No s’han pogut desar les rutes. Revisa la consola del navegador per a més detall.');
+      }
+      return false;
+    }
+    rutesRef.current = next;
     setRutes(next);
-    saveRutes(next);
+    return true;
   }, []);
 
-  const addRuta = useCallback((r: Omit<Ruta, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const nova: Ruta = {
-      ...r,
-      id: crypto.randomUUID(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    persistRutes([...rutes, nova]);
-  }, [rutes, persistRutes]);
+  const addRuta = useCallback(
+    (r: Omit<Ruta, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const now = new Date().toISOString();
+      const nova: Ruta = {
+        ...r,
+        id: crypto.randomUUID(),
+        createdAt: now,
+        updatedAt: now,
+      };
+      return persistRutes((prev) => [...prev, nova]);
+    },
+    [persistRutes]
+  );
 
-  const updateRuta = useCallback((id: string, patch: Partial<Ruta>) => {
-    const next = rutes.map((x) =>
-      x.id === id ? { ...x, ...patch, updatedAt: new Date().toISOString() } : x
-    );
-    persistRutes(next);
-  }, [rutes, persistRutes]);
+  const updateRuta = useCallback(
+    (id: string, patch: Partial<Ruta>) => {
+      return persistRutes((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, ...patch, updatedAt: new Date().toISOString() } : x))
+      );
+    },
+    [persistRutes]
+  );
 
-  const deleteRuta = useCallback((id: string) => {
-    persistRutes(rutes.filter((x) => x.id !== id));
-  }, [rutes, persistRutes]);
+  const deleteRuta = useCallback(
+    (id: string) => {
+      return persistRutes((prev) => prev.filter((x) => x.id !== id));
+    },
+    [persistRutes]
+  );
 
   const getRuta = useCallback((id: string) => rutes.find((x) => x.id === id), [rutes]);
 
@@ -272,11 +307,13 @@ export function RutesProvider({ children }: { children: ReactNode }) {
       if (options.mode === 'replace') {
         persistRutes(data.rutes);
       } else {
-        const map = new Map(rutes.map((r) => [r.id, r]));
-        for (const r of data.rutes) {
-          map.set(r.id, r);
-        }
-        persistRutes([...map.values()]);
+        persistRutes((prev) => {
+          const map = new Map(prev.map((r) => [r.id, r]));
+          for (const r of data.rutes) {
+            map.set(r.id, r);
+          }
+          return [...map.values()];
+        });
       }
       if (options.includeConfig && data.config) {
         const next = { ...defaultConfig, ...data.config } as Configuracio;
@@ -284,7 +321,7 @@ export function RutesProvider({ children }: { children: ReactNode }) {
         saveConfig(next);
       }
     },
-    [rutes, persistRutes]
+    [persistRutes]
   );
 
   const value = useMemo<RutesContextValue>(

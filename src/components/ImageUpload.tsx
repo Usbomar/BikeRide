@@ -25,11 +25,17 @@ export default function ImageUpload({ label, value, onChange, accept = 'image/*'
       const files = e.target.files;
       if (!files?.length) return;
       const newImages: ImatgeRuta[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const url = await readFile(files[i]);
-        newImages.push({ id: crypto.randomUUID(), url });
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const url = await readFile(files[i]);
+          newImages.push({ id: crypto.randomUUID(), url });
+        }
+        onChange([...value, ...newImages]);
+      } catch {
+        window.alert(
+          'No s’han pogut llegir una o més imatges (fitxer massa gran, format no suportat o error del navegador). Prova amb JPG/PNG més petits.'
+        );
       }
-      onChange([...value, ...newImages]);
       e.target.value = '';
     },
     [value, onChange]
