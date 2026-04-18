@@ -268,11 +268,11 @@ export default function Dashboard() {
     [rutes]
   );
 
-  /** Ruta amb data més antiga que tingui almenys una foto (ordre per camp `data`). */
-  const rutaMesAntigaAmbFotos = useMemo(() => {
+  /** Darrera ruta per data (`data`) que tingui almenys una foto. */
+  const ultimaRutaAmbFotos = useMemo(() => {
     const amb = rutes.filter((r) => (r.fotos?.length ?? 0) > 0);
     if (amb.length === 0) return null;
-    return [...amb].sort((a, b) => a.data.localeCompare(b.data))[0];
+    return [...amb].sort((a, b) => b.data.localeCompare(a.data))[0];
   }, [rutes]);
 
   const mitjanaNum =
@@ -469,11 +469,11 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        {rutaMesAntigaAmbFotos != null && (rutaMesAntigaAmbFotos.fotos?.length ?? 0) > 0 && (
+        {ultimaRutaAmbFotos != null && (ultimaRutaAmbFotos.fotos?.length ?? 0) > 0 && (
           <div className="h-full">
             <SliderPortadaFotos
-              key={`inline-${rutaMesAntigaAmbFotos.id}`}
-              ruta={rutaMesAntigaAmbFotos}
+              key={`inline-${ultimaRutaAmbFotos.id}`}
+              ruta={ultimaRutaAmbFotos}
               intervalMs={Math.min(8, Math.max(1, config.portadaSliderIntervalSegons)) * 1000}
             />
           </div>
