@@ -4,10 +4,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 const NAV_GRUPS = [
   {
     label: 'Rutes',
-    items: [
-      { to: '/rutes', label: 'Les rutes' },
-      { to: '/diari', label: 'Diari' },
-    ],
+    items: [{ to: '/rutes', label: 'Les rutes' }],
   },
   {
     label: 'Anàlisi',
@@ -29,6 +26,7 @@ const NAV_GRUPS = [
   {
     label: 'Nosaltres',
     items: [
+      { to: '/diari', label: 'Diari' },
       { to: '/reptes', label: 'Reptes' },
       { to: '/badges', label: 'Badges' },
       { to: '/streak', label: 'Streak' },
