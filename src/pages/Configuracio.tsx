@@ -393,6 +393,27 @@ export default function Configuracio() {
       </section>
 
       <section className="app-card">
+        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Slider de portada</h2>
+        <p className="text-xs text-[var(--text-muted)] mb-2">
+          Interval automàtic entre fotos (només al slider de la portada).
+        </p>
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={1}
+            max={8}
+            step={1}
+            value={config.portadaSliderIntervalSegons}
+            onChange={(e) => setConfig({ portadaSliderIntervalSegons: Number(e.target.value) })}
+            className="w-full accent-[var(--accent)]"
+          />
+          <span className="min-w-[3.5rem] rounded-md border border-[var(--border)] px-2 py-1 text-center text-xs font-semibold text-[var(--text-primary)]">
+            {config.portadaSliderIntervalSegons}s
+          </span>
+        </div>
+      </section>
+
+      <section className="app-card">
         <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Layout de l'Inici (Dashboard)</h2>
         <p className="text-xs text-[var(--text-muted)] mb-2">
           Arrossega per canviar l'ordre dels blocs principals de la pàgina d'inici.

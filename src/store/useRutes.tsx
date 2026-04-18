@@ -109,6 +109,7 @@ export interface Configuracio {
   animacions: Animacions;
   contrast: Contrast;
   voraTargetes: VoraTargetes;
+  portadaSliderIntervalSegons: number;
   dashboardLayout: DashboardLayoutConfig;
   rutaFormLayout: RutaFormLayoutConfig;
   rankingsLayout: RankingsLayoutConfig;
@@ -128,6 +129,7 @@ const defaultConfig: Configuracio = {
   animacions: 'normal',
   contrast: 'normal',
   voraTargetes: 'normal',
+  portadaSliderIntervalSegons: 5,
   dashboardLayout: {
     blocs: [
       { id: 'kpis', ordre: 1 },

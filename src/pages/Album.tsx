@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useRutes } from '../store/useRutes';
 import { EmptyState } from '../components/EmptyState';
 
@@ -59,6 +60,7 @@ function ChevronRight() {
 
 export default function Album() {
   const { rutes } = useRutes();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const fotosOrdenades = useMemo(() => {
     const ambFotos = rutes.filter((r) => (r.fotos?.length ?? 0) > 0);
@@ -125,8 +127,10 @@ export default function Album() {
 
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [rutaVisorId, setRutaVisorId] = useState<string | null>(null);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
   const [, setAspectes] = useState<Record<string, number>>({});
+  const obertDesDeQueryRef = useRef(false);
 
   const setAspect = useCallback((id: string, w: number, h: number) => {
     if (w <= 0 || h <= 0) return;
@@ -137,17 +141,23 @@ export default function Album() {
     });
   }, []);
 
-  const foto = fotosOrdenades[index];
+  const fotosVisor = useMemo(() => {
+    if (!rutaVisorId) return fotosOrdenades;
+    const perRuta = fotosOrdenades.filter((f) => f.rutaId === rutaVisorId);
+    return perRuta.length > 0 ? perRuta : fotosOrdenades;
+  }, [fotosOrdenades, rutaVisorId]);
+
+  const foto = fotosVisor[index];
 
   const next = useCallback(() => {
-    if (fotosOrdenades.length === 0) return;
-    setIndex((i) => (i + 1) % fotosOrdenades.length);
-  }, [fotosOrdenades.length]);
+    if (fotosVisor.length === 0) return;
+    setIndex((i) => (i + 1) % fotosVisor.length);
+  }, [fotosVisor.length]);
 
   const prev = useCallback(() => {
-    if (fotosOrdenades.length === 0) return;
-    setIndex((i) => (i - 1 + fotosOrdenades.length) % fotosOrdenades.length);
-  }, [fotosOrdenades.length]);
+    if (fotosVisor.length === 0) return;
+    setIndex((i) => (i - 1 + fotosVisor.length) % fotosVisor.length);
+  }, [fotosVisor.length]);
 
   const onDragStart = (x: number) => {
     setDragStartX(x);
@@ -172,6 +182,23 @@ export default function Album() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [expanded, next, prev]);
+
+  useEffect(() => {
+    if (obertDesDeQueryRef.current) return;
+    if (fotosOrdenades.length === 0) return;
+    const rutaId = searchParams.get('rutaId');
+    const fotoId = searchParams.get('fotoId');
+    if (!rutaId || !fotoId) return;
+    const fotosRuta = fotosOrdenades.filter((f) => f.rutaId === rutaId);
+    if (fotosRuta.length === 0) return;
+    const idx = fotosRuta.findIndex((f) => f.id === fotoId);
+    queueMicrotask(() => {
+      setRutaVisorId(rutaId);
+      setIndex(idx >= 0 ? idx : 0);
+      setExpanded(true);
+    });
+    obertDesDeQueryRef.current = true;
+  }, [fotosOrdenades, searchParams]);
 
   return (
     <div>
@@ -237,6 +264,7 @@ export default function Album() {
                       type="button"
                       onClick={() => {
                         const gi = fotosOrdenades.findIndex((x) => x.id === f.id && x.rutaId === f.rutaId);
+                        setRutaVisorId(null);
                         setIndex(gi);
                         setExpanded(true);
                       }}
@@ -270,7 +298,13 @@ export default function Album() {
       {expanded && foto && (
         <div
           className="fixed inset-0 z-50 flex flex-col bg-black/95"
-          onClick={() => setExpanded(false)}
+          onClick={() => {
+            setExpanded(false);
+            setRutaVisorId(null);
+            if (searchParams.get('rutaId') || searchParams.get('fotoId')) {
+              setSearchParams({}, { replace: true });
+            }
+          }}
           role="presentation"
         >
           <div
@@ -291,7 +325,7 @@ export default function Album() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-white/40">
-                {index + 1} / {fotosOrdenades.length}
+                {index + 1} / {fotosVisor.length}
               </span>
               <a
                 href={foto.url}
@@ -370,7 +404,7 @@ export default function Album() {
           </div>
 
           <div className="flex shrink-0 gap-2 overflow-x-auto px-6 py-3" onClick={(e) => e.stopPropagation()}>
-            {fotosOrdenades.map((f2, i2) => (
+            {fotosVisor.map((f2, i2) => (
               <button
                 key={`${f2.rutaId}-${f2.id}`}
                 type="button"
