@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../components/EmptyState';
 import { useRutes } from '../store/useRutes';
@@ -92,6 +92,83 @@ function MiniBarra({ pct }: { pct: number }) {
   return (
     <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
       <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${w}%` }} />
+    </div>
+  );
+}
+
+const SLIDER_AUTO_MS = 5000;
+
+function SliderPortadaFotos({ ruta }: { ruta: Ruta }) {
+  const fotos = ruta.fotos ?? [];
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (fotos.length <= 1 || paused) return;
+    const id = window.setInterval(() => {
+      setIdx((i) => (i + 1) % fotos.length);
+    }, SLIDER_AUTO_MS);
+    return () => window.clearInterval(id);
+  }, [fotos.length, paused]);
+
+  const dataFmt = new Date(ruta.data + 'T12:00:00').toLocaleDateString('ca-ES', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] shadow-sm"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2.5">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--accent2)]">
+            Sortida amb fotos més antiga
+          </p>
+          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{ruta.nom}</p>
+          <p className="text-xs text-[var(--text-muted)]">{dataFmt}</p>
+        </div>
+        <Link
+          to={`/rutes/${ruta.id}`}
+          className="shrink-0 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--accent)] no-underline transition-colors hover:bg-[var(--accent-soft)]"
+        >
+          Veure ruta
+        </Link>
+      </div>
+
+      <div className="relative aspect-[16/10] max-h-[min(360px,55vh)] w-full bg-[var(--superficie-muted)]">
+        {fotos.map((f, i) => (
+          <img
+            key={f.id}
+            src={f.url}
+            alt={f.caption || `${ruta.nom} — foto ${i + 1}`}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out ${
+              i === idx ? 'z-[1] opacity-100' : 'z-0 opacity-0'
+            }`}
+            loading={i === 0 ? 'eager' : 'lazy'}
+          />
+        ))}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] bg-gradient-to-t from-black/55 to-transparent px-4 pb-3 pt-10" />
+        {fotos.length > 1 && (
+          <div className="pointer-events-auto absolute bottom-2 left-0 right-0 z-[3] flex justify-center gap-1.5">
+            {fotos.map((f, i) => (
+              <button
+                key={f.id}
+                type="button"
+                aria-label={`Foto ${i + 1}`}
+                aria-current={i === idx ? 'true' : undefined}
+                onClick={() => setIdx(i)}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === idx ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -192,6 +269,13 @@ export default function Dashboard() {
     [rutes]
   );
 
+  /** Ruta amb data més antiga que tingui almenys una foto (ordre per camp `data`). */
+  const rutaMesAntigaAmbFotos = useMemo(() => {
+    const amb = rutes.filter((r) => (r.fotos?.length ?? 0) > 0);
+    if (amb.length === 0) return null;
+    return [...amb].sort((a, b) => a.data.localeCompare(b.data))[0];
+  }, [rutes]);
+
   const mitjanaNum =
     stats.mitjanaPerSortida !== '—' ? parseFloat(stats.mitjanaPerSortida) : 0;
   const pctMitjana = (mitjanaNum / millorMesKm) * 100;
@@ -239,6 +323,12 @@ export default function Dashboard() {
           Nova ruta
         </Link>
       </section>
+
+      {rutaMesAntigaAmbFotos != null && (rutaMesAntigaAmbFotos.fotos?.length ?? 0) > 0 && (
+        <section aria-label="Galeria de la sortida amb fotos més antiga">
+          <SliderPortadaFotos key={rutaMesAntigaAmbFotos.id} ruta={rutaMesAntigaAmbFotos} />
+        </section>
+      )}
 
       <section>
         <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-[var(--border)] md:grid-cols-3">
