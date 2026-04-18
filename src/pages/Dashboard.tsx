@@ -123,22 +123,6 @@ function SliderPortadaFotos({ ruta, intervalMs }: { ruta: Ruta; intervalMs: numb
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2.5">
-        <div className="min-w-0">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--accent2)]">
-            Sortida amb fotos més antiga
-          </p>
-          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{ruta.nom}</p>
-          <p className="text-xs text-[var(--text-muted)]">{dataFmt}</p>
-        </div>
-        <Link
-          to={`/rutes/${ruta.id}`}
-          className="shrink-0 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--accent)] no-underline transition-colors hover:bg-[var(--accent-soft)]"
-        >
-          Veure ruta
-        </Link>
-      </div>
-
       <Link
         to={`/album?rutaId=${encodeURIComponent(ruta.id)}&fotoId=${encodeURIComponent(fotos[idx]?.id ?? '')}`}
         className="relative block min-h-[240px] flex-1 overflow-hidden bg-[var(--superficie-muted)] no-underline"
@@ -177,6 +161,13 @@ function SliderPortadaFotos({ ruta, intervalMs }: { ruta: Ruta; intervalMs: numb
           </div>
         )}
       </Link>
+      <div className="border-t border-[var(--border)] px-4 py-2">
+        <p className="truncate text-xs text-[var(--text-muted)]">
+          <span className="font-semibold text-[var(--text-primary)]">{ruta.nom}</span>
+          {' · '}
+          <span>{dataFmt}</span>
+        </p>
+      </div>
     </div>
   );
 }
