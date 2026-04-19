@@ -118,6 +118,7 @@ function velMitjanaKmH(km: number, hores: number): string {
 export default function Informes() {
   const { rutes } = useRutes();
   const [periode, setPeriode] = useState<Periode>('mensual');
+  const [llistaPeriodesOberta, setLlistaPeriodesOberta] = useState(false);
 
   const dades = useMemo((): FilaPeriode[] => {
     const araRef = new Date();
@@ -292,7 +293,42 @@ export default function Informes() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setLlistaPeriodesOberta((v) => !v)}
+            className="flex w-full items-center justify-between gap-3 rounded-xl border-2 border-dashed border-[var(--accent)]/35 bg-[var(--bg-card)] px-4 py-3.5 text-left transition-colors hover:border-[var(--accent)]/55 hover:bg-[var(--superficie-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
+            aria-expanded={llistaPeriodesOberta}
+            id="informes-periodes-toggle"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`shrink-0 text-[var(--accent)] transition-transform duration-200 ${
+                  llistaPeriodesOberta ? 'rotate-90' : ''
+                }`}
+                aria-hidden
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              <span className="font-semibold text-[var(--text-primary)]">
+                {llistaPeriodesOberta ? 'Amaga els períodes' : 'Mostra els períodes'}
+              </span>
+            </span>
+            <span className="hidden text-xs text-[var(--text-muted)] sm:inline">
+              {llistaPeriodesOberta ? 'Taula visible' : 'Desplega la taula detallada'}
+            </span>
+          </button>
+
+          {llistaPeriodesOberta && (
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]" role="region" aria-labelledby="informes-periodes-toggle">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="bg-[var(--bg-card)] border-b border-[var(--border)]">
@@ -349,6 +385,8 @@ export default function Informes() {
               })}
             </tbody>
           </table>
+        </div>
+          )}
         </div>
       </div>
     </div>

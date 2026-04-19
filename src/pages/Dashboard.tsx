@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../components/EmptyState';
-import DashboardHeroIllustration from '../components/illustrations/DashboardHeroIllustration';
 import { useRutes } from '../store/useRutes';
 import {
   AreaChart,
@@ -269,6 +268,11 @@ export default function Dashboard() {
     [rutes]
   );
 
+  const ultimaSortida = useMemo(() => {
+    if (rutes.length === 0) return null;
+    return [...rutes].sort((a, b) => b.data.localeCompare(a.data))[0];
+  }, [rutes]);
+
   /** Darrera ruta per data (`data`) que tingui almenys una foto. */
   const ultimaRutaAmbFotos = useMemo(() => {
     const amb = rutes.filter((r) => (r.fotos?.length ?? 0) > 0);
@@ -285,6 +289,15 @@ export default function Dashboard() {
 
   const refMesActual = dadesEvolucio.find((d) => d.esMesActual)?.label;
 
+  const dataUltimaSortidaFmt =
+    ultimaSortida != null
+      ? new Date(ultimaSortida.data + 'T12:00:00').toLocaleDateString('ca-ES', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : '';
+
   return (
     <div className="space-y-10">
       <section className="mb-8 flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
@@ -297,15 +310,25 @@ export default function Dashboard() {
                 month: 'long',
               })}
             </p>
-            <h1 className="text-3xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
-              Benvinguts de nou
-            </h1>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              {stats.sortides} sortides · {stats.distancia.toFixed(0)} km acumulats
-            </p>
+            {ultimaSortida ? (
+              <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-4">
+                <h1 className="min-w-0 text-3xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
+                  <Link to={`/rutes/${ultimaSortida.id}`} className="text-[var(--text-primary)] no-underline hover:text-[var(--accent)] hover:underline">
+                    {ultimaSortida.nom}
+                  </Link>
+                </h1>
+                <p className="shrink-0 text-3xl font-black tracking-tight leading-tight text-[var(--text-secondary)]">{dataUltimaSortidaFmt}</p>
+              </div>
+            ) : (
+              <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">Encara no hi ha sortides</h1>
+            )}
           </div>
-          <div className="mx-auto w-full max-w-[260px] shrink-0 text-[var(--accent)] sm:mx-0 md:max-w-[min(100%,280px)]">
-            <DashboardHeroIllustration className="h-auto w-full drop-shadow-sm" />
+          <div className="mx-auto w-full max-w-[min(100%,320px)] shrink-0 sm:mx-0">
+            <img
+              src="/bike-hero-portada.png"
+              alt=""
+              className="h-auto w-full max-h-[220px] object-contain object-center sm:max-h-[200px] md:object-right"
+            />
           </div>
         </div>
         <Link
@@ -340,24 +363,20 @@ export default function Dashboard() {
           </div>
 
           <div className="flex min-h-[120px] flex-col justify-between border-t border-[var(--border)] p-7 md:border-l md:border-t-0">
-            <div className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Desnivell acumulat</div>
+            <div className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Hores totals</div>
             <div>
               <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">
-                {(stats.desnivell / 1000).toFixed(2)}
+                {stats.hores.toLocaleString('ca-ES', { maximumFractionDigits: 1, minimumFractionDigits: 0 })}
               </div>
-              <div className="mt-1 text-sm text-[var(--text-muted)]">mil metres</div>
+              <div className="mt-1 text-sm text-[var(--text-muted)]">hores invertides</div>
             </div>
           </div>
 
           <div className="flex min-h-[120px] flex-col justify-between border-t border-[var(--border)] p-7 md:border-l md:border-t-0">
-            <div className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Temps en moviment</div>
+            <div className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Sortides</div>
             <div>
-              <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">
-                {Math.floor(stats.hores)}
-              </div>
-              <div className="mt-1 text-sm text-[var(--text-muted)]">
-                hores · {stats.sortides} sortides
-              </div>
+              <div className="text-5xl font-black tabular-nums leading-none text-[var(--text-primary)]">{stats.sortides}</div>
+              <div className="mt-1 text-sm text-[var(--text-muted)]">registres</div>
             </div>
           </div>
         </div>
