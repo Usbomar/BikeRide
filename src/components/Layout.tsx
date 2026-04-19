@@ -64,26 +64,6 @@ function IconaHamburger() {
   );
 }
 
-function IconaPlusNovaRuta({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="white"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
-
 export default function Layout() {
   const location = useLocation();
   const [grupObert, setGrupObert] = useState<string | null>(null);
@@ -176,14 +156,9 @@ export default function Layout() {
 
             <Link
               to="/nova-ruta"
-              className="flex h-[44px] w-[62px] shrink-0 flex-col items-center justify-center rounded-lg bg-[var(--accent2)] no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+              className="flex h-[44px] min-w-[122px] shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-[var(--accent2)] px-4 text-xs font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
             >
-              <IconaPlusNovaRuta />
-              <span className="mt-1 text-center text-[9px] font-bold leading-none tracking-tight text-white">
-                Nova
-                <br />
-                ruta
-              </span>
+              Nova ruta
             </Link>
 
             <Link
@@ -256,22 +231,8 @@ export default function Layout() {
               <Link
                 to="/nova-ruta"
                 onClick={() => setMenuMobilObert(false)}
-                className="mb-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent2)] py-3 text-sm font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+                className="mb-5 flex w-full items-center justify-center whitespace-nowrap rounded-xl bg-[var(--accent2)] px-4 py-3 text-sm font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth={2.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
                 Nova ruta
               </Link>
 

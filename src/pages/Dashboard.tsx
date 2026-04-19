@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { resumRutes } from '../utils/informes';
 import { totalHores, distribucioPerTipus, distribucioPerComarca } from '../utils/estadistiques';
-import { tresMillorsAproximacionsDesSabadell } from '../utils/destinsDesdeSabadell';
+import { tresMillorsAproximacionsDesSabadell, type AproximacioKm } from '../utils/destinsDesdeSabadell';
 import type { Ruta, TipusRuta } from '../types/ruta';
 
 const TIPUS_LABEL: Record<TipusRuta | 'no especificat', string> = {
@@ -173,6 +173,66 @@ function SliderPortadaFotos({ ruta, intervalMs }: { ruta: Ruta; intervalMs: numb
   );
 }
 
+function BarraRecorregutDesSabadell({
+  kmTotal,
+  aproximacions,
+}: {
+  kmTotal: number;
+  aproximacions: AproximacioKm[];
+}) {
+  if (kmTotal <= 0 || aproximacions.length === 0) return null;
+
+  const ciutatsOrdenades = [...aproximacions]
+    .map((a) => ({ nom: a.desti.nom, km: a.desti.km }))
+    .sort((x, y) => x.km - y.km);
+
+  const punts: { nom: string; km: number }[] = [{ nom: 'Sabadell', km: 0 }, ...ciutatsOrdenades];
+
+  return (
+    <section className="app-card rounded-2xl border border-dashed border-[var(--accent)]/25 bg-[var(--bg-card)] p-4 md:p-5">
+      <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+        El vostre crèdit de km, com un sol recorregut des de Sabadell
+      </h2>
+      <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
+        Escala 0–{kmTotal.toFixed(0)} km (km acumulats totals). Marques orientatives; les 3 ciutats són les que millor
+        aproximen el vostre total per corredor.
+      </p>
+      <div className="relative mt-8 px-0.5">
+        <div className="relative h-3 w-full rounded-full bg-[var(--border)]">
+          {punts.map((p, i) => (
+            <div
+              key={`dot-${p.nom}-${i}`}
+              className="absolute top-1/2 z-[1] h-3 w-3 rounded-full border-2 border-[var(--bg-card)] bg-[var(--accent)] shadow-sm ring-1 ring-[var(--accent)]/30 md:h-3.5 md:w-3.5"
+              style={{
+                left: i === 0 ? '0%' : `${(p.km / kmTotal) * 100}%`,
+                transform: i === 0 ? 'translate(0, -50%)' : 'translate(-50%, -50%)',
+              }}
+            />
+          ))}
+        </div>
+        <div className="relative mt-10 min-h-[2.75rem] w-full">
+          {punts.map((p, i) => {
+            const leftPct = i === 0 ? 0 : (p.km / kmTotal) * 100;
+            return (
+              <div
+                key={`lab-${p.nom}-${i}`}
+                className="absolute top-0 max-w-[22%] text-center md:max-w-[20%]"
+                style={{
+                  left: i === 0 ? '0%' : `${leftPct}%`,
+                  transform: i === 0 ? 'translateX(0)' : 'translateX(-50%)',
+                }}
+              >
+                <div className="text-[11px] font-semibold leading-snug text-[var(--text-primary)] md:text-xs">{p.nom}</div>
+                <div className="text-[10px] tabular-nums text-[var(--text-muted)]">{p.km} km</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Dashboard() {
   const { rutes, config } = useRutes();
 
@@ -202,11 +262,14 @@ export default function Dashboard() {
           return rd.getFullYear() === any && rd.getMonth() === mes;
         })
         .reduce((s, r) => s + (r.distanciaKm ?? 0), 0);
+      const mesLlarg = d.toLocaleDateString('ca-ES', { month: 'long' });
+      const labelMesAny = `${mesLlarg.charAt(0).toUpperCase() + mesLlarg.slice(1)} ${d.getFullYear()}`;
       return {
         label: d.toLocaleDateString('ca-ES', {
           month: 'short',
           year: '2-digit',
         }),
+        labelMesAny,
         km: Math.round(km * 10) / 10,
         esMesActual: i === 11,
       };
@@ -344,43 +407,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {stats.distancia > 0 && tresAproxKmSabadell.length > 0 && (
-        <section className="app-card rounded-2xl border border-dashed border-[var(--accent)]/25 bg-[var(--bg-card)] p-4 md:p-5">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            I si aquests quilòmetres fossin un sol viatge des de Sabadell?
-          </h2>
-          <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-muted)]">
-            Orientatiu: distàncies aproximades per carretera. Es mostren les{' '}
-            <strong className="font-medium text-[var(--text-secondary)]">3 direccions</strong> on una ciutat
-            assolible amb els vostres{' '}
-            <strong className="tabular-nums text-[var(--accent)]">{stats.distancia.toFixed(0)} km</strong>{' '}
-            acumulats aprofita millor el crèdit (més a prop d’arribar-ne just al límit).
-          </p>
-          <ul className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
-            {tresAproxKmSabadell.map((a, i) => (
-              <li key={`${a.direccio}-${a.desti.nom}-${i}`} className="flex gap-3 border-b border-[var(--border)] pb-3 last:border-0 last:pb-0">
-                <span
-                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]"
-                  aria-hidden
-                >
-                  {i + 1}
-                </span>
-                <div>
-                  <div className="font-medium text-[var(--text-primary)]">{a.direccio}</div>
-                  <div className="mt-0.5">
-                    Fins a <strong>{a.desti.nom}</strong>
-                    {a.desti.pais ? (
-                      <span className="text-[var(--text-muted)]"> ({a.desti.pais})</span>
-                    ) : null}
-                    <span className="tabular-nums text-[var(--text-muted)]"> · ~{a.desti.km} km</span>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section>
         <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-[var(--border)] md:grid-cols-3">
           <div className="relative flex min-h-[140px] flex-col justify-between bg-[var(--accent)] p-7">
@@ -500,12 +526,12 @@ export default function Dashboard() {
             <div className="p-4">
               <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">Millor mes</div>
               {millorMesEvolucio ? (
-                <>
-                  <div className="mt-1.5 text-base font-bold leading-tight text-[var(--text-primary)]">
-                    {millorMesEvolucio.label}
-                  </div>
-                  <div className="text-sm font-black tabular-nums text-[var(--accent2)]">{millorMesEvolucio.km} km</div>
-                </>
+                <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="text-base font-bold leading-tight text-[var(--text-primary)]">
+                    {millorMesEvolucio.labelMesAny}
+                  </span>
+                  <span className="text-sm font-black tabular-nums text-[var(--accent2)]">{millorMesEvolucio.km} km</span>
+                </div>
               ) : (
                 <div className="mt-1.5 text-sm text-[var(--text-muted)]">—</div>
               )}
@@ -533,6 +559,10 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+
+      {stats.distancia > 0 && tresAproxKmSabadell.length > 0 && (
+        <BarraRecorregutDesSabadell kmTotal={stats.distancia} aproximacions={tresAproxKmSabadell} />
+      )}
 
       <section>
         <div className="mb-3 flex items-center justify-between gap-2">
