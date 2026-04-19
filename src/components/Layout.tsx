@@ -15,6 +15,7 @@ const NAV_GRUPS = [
     label: 'Mètriques i informes',
     description: 'Xifres, rànquings i comparatives',
     items: [
+      { to: '/panell', label: 'Panell' },
       { to: '/informes', label: 'Informes' },
       { to: '/rankings', label: 'Rànquings' },
       { to: '/any-vs-any', label: 'Any vs Any' },

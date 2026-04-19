@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import RutesList from './pages/RutesList';
 import RutaDetail from './pages/RutaDetail';
 import RutaForm from './pages/RutaForm';
+import Panell from './pages/Panell';
 import Informes from './pages/Informes';
 import Rankings from './pages/Rankings';
 import Configuracio from './pages/Configuracio';
@@ -33,6 +34,7 @@ export default function App() {
               <Route path="nova-ruta" element={<RutaForm />} />
               <Route path="rutes/:id" element={<RutaDetail />} />
               <Route path="rutes/:id/editar" element={<RutaForm />} />
+              <Route path="panell" element={<Panell />} />
               <Route path="informes" element={<Informes />} />
               <Route path="rankings" element={<Rankings />} />
               <Route path="mapa" element={<Mapa />} />
