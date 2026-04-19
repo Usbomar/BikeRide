@@ -38,7 +38,6 @@ const NAV_GRUPS = [
       { to: '/reptes', label: 'Reptes' },
       { to: '/badges', label: 'Badges' },
       { to: '/streak', label: 'Streak' },
-      { to: '/duel', label: 'Duel' },
     ],
   },
 ] as const;
