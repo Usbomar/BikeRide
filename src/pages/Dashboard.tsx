@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { resumRutes } from '../utils/informes';
 import { totalHores, distribucioPerTipus, distribucioPerComarca } from '../utils/estadistiques';
+import { tresMillorsAproximacionsDesSabadell } from '../utils/destinsDesdeSabadell';
 import type { Ruta, TipusRuta } from '../types/ruta';
 
 const TIPUS_LABEL: Record<TipusRuta | 'no especificat', string> = {
