@@ -104,7 +104,7 @@ export default function Layout() {
       <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--bg-card)]/80 backdrop-blur">
         <div className="mx-auto flex items-center justify-between gap-3 px-3 py-2" style={{ maxWidth: 'var(--app-max-width)' }}>
           <Link to="/" className="shrink-0 text-lg font-medium text-[var(--text-primary)] no-underline">
-            BikeRide
+            BikeRiders
           </Link>
 
           <div className="relative hidden min-w-0 flex-1 items-center gap-1 md:flex">
@@ -217,7 +217,7 @@ export default function Layout() {
             aria-label="Menú de navegació"
           >
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-              <span className="text-base font-semibold text-[var(--text-primary)]">BikeRide</span>
+              <span className="text-base font-semibold text-[var(--text-primary)]">BikeRiders</span>
               <button
                 type="button"
                 className="rounded-lg p-2 text-lg leading-none text-[var(--text-muted)] hover:text-[var(--text-primary)]"

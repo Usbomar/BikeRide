@@ -190,19 +190,34 @@ function BarraRecorregutDesSabadell({
 
   return (
     <section className="app-card rounded-2xl border border-dashed border-[var(--accent)]/25 bg-[var(--bg-card)] p-4 md:p-5">
-      <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-        El vostre crèdit de km, com un sol recorregut des de Sabadell
-      </h2>
-      <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-        Escala 0–{kmTotal.toFixed(0)} km (km acumulats totals). Marques orientatives; les 3 ciutats són les que millor
-        aproximen el vostre total per corredor.
-      </p>
-      <div className="relative mt-8 px-0.5">
-        <div className="relative h-3 w-full rounded-full bg-[var(--border)]">
+      <div className="relative px-0.5 pt-1">
+        {/* Files d’etiquetes: parells a sobre de la barra, senars a sota, per reduir solapaments */}
+        <div className="relative min-h-[2.85rem] w-full">
+          {punts.map((p, i) => {
+            const leftPct = i === 0 ? 0 : (p.km / kmTotal) * 100;
+            if (i % 2 !== 0) return null;
+            return (
+              <div
+                key={`lab-top-${p.nom}-${i}`}
+                className="absolute bottom-0 max-w-[26%] text-center md:max-w-[22%]"
+                style={{
+                  left: i === 0 ? '0%' : `${leftPct}%`,
+                  transform: i === 0 ? 'translateX(0)' : 'translateX(-50%)',
+                }}
+              >
+                <div className="text-[11px] font-semibold leading-snug text-[var(--text-primary)] md:text-xs">{p.nom}</div>
+                <div className="text-[10px] tabular-nums text-[var(--text-muted)]">{p.km} km</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="relative z-[2] my-1 h-4 w-full">
+          <div className="absolute left-0 right-0 top-1/2 h-3 w-full -translate-y-1/2 rounded-full bg-[var(--border)]" />
           {punts.map((p, i) => (
             <div
               key={`dot-${p.nom}-${i}`}
-              className="absolute top-1/2 z-[1] h-3 w-3 rounded-full border-2 border-[var(--bg-card)] bg-[var(--accent)] shadow-sm ring-1 ring-[var(--accent)]/30 md:h-3.5 md:w-3.5"
+              className="absolute top-1/2 z-[3] h-3.5 w-3.5 rounded-full border-2 border-[var(--bg-card)] bg-[var(--accent)] shadow-md ring-2 ring-[var(--accent)]/35 md:h-4 md:w-4"
               style={{
                 left: i === 0 ? '0%' : `${(p.km / kmTotal) * 100}%`,
                 transform: i === 0 ? 'translate(0, -50%)' : 'translate(-50%, -50%)',
@@ -210,16 +225,18 @@ function BarraRecorregutDesSabadell({
             />
           ))}
         </div>
-        <div className="relative mt-10 min-h-[2.75rem] w-full">
+
+        <div className="relative min-h-[2.85rem] w-full">
           {punts.map((p, i) => {
             const leftPct = i === 0 ? 0 : (p.km / kmTotal) * 100;
+            if (i % 2 === 0) return null;
             return (
               <div
-                key={`lab-${p.nom}-${i}`}
-                className="absolute top-0 max-w-[22%] text-center md:max-w-[20%]"
+                key={`lab-bot-${p.nom}-${i}`}
+                className="absolute top-0 max-w-[26%] text-center md:max-w-[22%]"
                 style={{
-                  left: i === 0 ? '0%' : `${leftPct}%`,
-                  transform: i === 0 ? 'translateX(0)' : 'translateX(-50%)',
+                  left: `${leftPct}%`,
+                  transform: 'translateX(-50%)',
                 }}
               >
                 <div className="text-[11px] font-semibold leading-snug text-[var(--text-primary)] md:text-xs">{p.nom}</div>
@@ -370,8 +387,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-10">
       <section className="mb-8 py-2 md:py-6">
-        <div className="flex flex-col items-stretch gap-8 md:flex-row md:items-center md:gap-8 lg:gap-10">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center py-2 md:py-6">
+        <div className="flex flex-col items-stretch gap-6 md:flex-row md:items-center md:gap-8 lg:gap-10">
+          <div className="flex w-full min-w-0 shrink-0 justify-start md:w-[min(34.5%,315px)] md:max-w-[min(34.5vw,360px)]">
+            <img
+              src="/bike-hero-portada.png"
+              alt=""
+              className="h-auto w-full max-h-[min(63.75vh,420px)] object-contain object-left sm:max-h-[min(60vh,390px)] md:max-h-[min(54vh,360px)] md:object-left lg:max-h-[min(52.5vh,390px)]"
+            />
+          </div>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center py-2 text-right md:py-6">
             <p className="text-2xl font-black leading-tight tracking-tight text-[var(--text-secondary)] opacity-80 sm:text-3xl md:text-4xl">
               {new Date().toLocaleDateString('ca-ES', {
                 weekday: 'long',
@@ -381,28 +405,20 @@ export default function Dashboard() {
               })}
             </p>
             {ultimaSortida ? (
-              <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
+              <div className="mt-3 flex flex-col items-end gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
                 <Link
                   to={`/rutes/${ultimaSortida.id}`}
-                  className="min-w-0 max-w-full truncate text-blue-600 no-underline hover:underline dark:text-blue-400"
+                  className="max-w-full truncate text-blue-600 no-underline hover:underline dark:text-blue-400"
                 >
                   {ultimaSortida.nom}
                 </Link>
-                <span className="text-blue-600/70 dark:text-blue-400/70" aria-hidden>
-                  ·
+                <span className="shrink-0 text-sm">
+                  Darrera ruta: {dataUltimaSortidaFmt}
                 </span>
-                <span className="shrink-0">{dataUltimaSortidaFmt}</span>
               </div>
             ) : (
               <p className="mt-3 text-sm font-medium text-blue-600 dark:text-blue-400">Encara no hi ha sortides</p>
             )}
-          </div>
-          <div className="mx-auto flex w-full min-w-0 shrink-0 items-center justify-center md:mx-0 md:w-[min(46%,420px)] md:max-w-[min(46vw,480px)] lg:w-[min(42%,520px)]">
-            <img
-              src="/bike-hero-portada.png"
-              alt=""
-              className="h-auto w-full max-h-[min(85vh,560px)] object-contain object-center sm:max-h-[min(80vh,520px)] md:max-h-[min(72vh,480px)] md:object-right lg:max-h-[min(70vh,520px)]"
-            />
           </div>
         </div>
       </section>
