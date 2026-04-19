@@ -300,33 +300,39 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <section className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8">
-        <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:gap-8">
-          <div className="min-w-0 flex-1">
-            <p className="mb-1 text-[11px] font-medium uppercase tracking-widest text-[var(--accent)]">Darrera sortida</p>
+      <section className="mb-8">
+        <div className="flex flex-col items-stretch gap-6 md:flex-row md:items-center md:gap-8 lg:gap-10">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center">
+            <p className="text-2xl font-black leading-tight tracking-tight text-[var(--text-secondary)] opacity-80 sm:text-3xl md:text-4xl">
+              {new Date().toLocaleDateString('ca-ES', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
             {ultimaSortida ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-3xl font-black leading-tight tracking-tight text-[var(--text-primary)] md:text-4xl">
-                  {dataUltimaSortidaFmt}
-                </p>
-                <p className="text-sm font-medium leading-snug text-[var(--text-secondary)]">
-                  <Link
-                    to={`/rutes/${ultimaSortida.id}`}
-                    className="text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] hover:underline"
-                  >
-                    {ultimaSortida.nom}
-                  </Link>
-                </p>
+              <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                <Link
+                  to={`/rutes/${ultimaSortida.id}`}
+                  className="min-w-0 max-w-full truncate text-blue-600 no-underline hover:underline dark:text-blue-400"
+                >
+                  {ultimaSortida.nom}
+                </Link>
+                <span className="text-blue-600/70 dark:text-blue-400/70" aria-hidden>
+                  ·
+                </span>
+                <span className="shrink-0">{dataUltimaSortidaFmt}</span>
               </div>
             ) : (
-              <p className="text-3xl font-black tracking-tight text-[var(--text-primary)]">Encara no hi ha sortides</p>
+              <p className="mt-3 text-sm font-medium text-blue-600 dark:text-blue-400">Encara no hi ha sortides</p>
             )}
           </div>
-          <div className="mx-auto w-full max-w-[min(100%,320px)] shrink-0 sm:mx-0">
+          <div className="mx-auto flex w-full max-w-[min(100%,320px)] shrink-0 items-center justify-center md:mx-0 md:w-auto md:max-w-[300px] lg:max-w-[320px]">
             <img
               src="/bike-hero-portada.png"
               alt=""
-              className="h-auto w-full max-h-[220px] object-contain object-center sm:max-h-[200px] md:object-right"
+              className="h-auto w-full max-h-[220px] object-contain object-center md:max-h-[min(220px,100%)] md:object-right"
             />
           </div>
         </div>
