@@ -300,27 +300,26 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <section className="mb-8 flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+      <section className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8">
         <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:gap-8">
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-[11px] font-medium uppercase tracking-widest text-[var(--accent)]">
-              {new Date().toLocaleDateString('ca-ES', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-              })}
-            </p>
+            <p className="mb-1 text-[11px] font-medium uppercase tracking-widest text-[var(--accent)]">Darrera sortida</p>
             {ultimaSortida ? (
-              <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-4">
-                <h1 className="min-w-0 text-3xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
-                  <Link to={`/rutes/${ultimaSortida.id}`} className="text-[var(--text-primary)] no-underline hover:text-[var(--accent)] hover:underline">
+              <div className="flex flex-col gap-2">
+                <p className="text-3xl font-black leading-tight tracking-tight text-[var(--text-primary)] md:text-4xl">
+                  {dataUltimaSortidaFmt}
+                </p>
+                <p className="text-sm font-medium leading-snug text-[var(--text-secondary)]">
+                  <Link
+                    to={`/rutes/${ultimaSortida.id}`}
+                    className="text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] hover:underline"
+                  >
                     {ultimaSortida.nom}
                   </Link>
-                </h1>
-                <p className="shrink-0 text-3xl font-black tracking-tight leading-tight text-[var(--text-secondary)]">{dataUltimaSortidaFmt}</p>
+                </p>
               </div>
             ) : (
-              <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">Encara no hi ha sortides</h1>
+              <p className="text-3xl font-black tracking-tight text-[var(--text-primary)]">Encara no hi ha sortides</p>
             )}
           </div>
           <div className="mx-auto w-full max-w-[min(100%,320px)] shrink-0 sm:mx-0">
@@ -331,25 +330,6 @@ export default function Dashboard() {
             />
           </div>
         </div>
-        <Link
-          to="/nova-ruta"
-          className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--accent2)] px-4 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)] sm:w-auto sm:justify-start"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Nova ruta
-        </Link>
       </section>
 
       <section>

@@ -176,14 +176,10 @@ export default function Layout() {
 
             <Link
               to="/nova-ruta"
-              className="flex h-[44px] w-[52px] shrink-0 flex-col items-center justify-center rounded-lg bg-[var(--accent2)] no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+              className="flex h-11 min-w-[78px] shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--accent2)] px-4 text-white no-underline transition-colors hover:bg-[var(--accent2-hover)] sm:min-w-[120px]"
             >
-              <IconaPlusNovaRuta />
-              <span className="mt-1 text-center text-[9px] font-bold leading-none tracking-tight text-white">
-                Nova
-                <br />
-                ruta
-              </span>
+              <IconaPlusNovaRuta className="shrink-0" />
+              <span className="text-xs font-bold leading-tight tracking-tight">Nova ruta</span>
             </Link>
 
             <Link
