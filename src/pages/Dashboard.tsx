@@ -328,11 +328,11 @@ export default function Dashboard() {
               <p className="mt-3 text-sm font-medium text-blue-600 dark:text-blue-400">Encara no hi ha sortides</p>
             )}
           </div>
-          <div className="mx-auto flex w-full max-w-[min(100%,320px)] shrink-0 items-center justify-center md:mx-0 md:w-auto md:max-w-[300px] lg:max-w-[320px]">
+          <div className="mx-auto flex w-full max-w-[min(100%,480px)] shrink-0 items-center justify-center md:mx-0 md:w-auto md:max-w-[450px] lg:max-w-[480px]">
             <img
               src="/bike-hero-portada.png"
               alt=""
-              className="h-auto w-full max-h-[220px] object-contain object-center md:max-h-[min(220px,100%)] md:object-right"
+              className="h-auto w-full max-h-[330px] object-contain object-center md:max-h-[min(330px,100%)] md:object-right"
             />
           </div>
         </div>
