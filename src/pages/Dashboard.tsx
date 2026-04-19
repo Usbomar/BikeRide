@@ -299,11 +299,16 @@ export default function Dashboard() {
         })
       : '';
 
+  const tresAproxKmSabadell = useMemo(
+    () => tresMillorsAproximacionsDesSabadell(stats.distancia),
+    [stats.distancia]
+  );
+
   return (
     <div className="space-y-10">
-      <section className="mb-8">
-        <div className="flex flex-col items-stretch gap-6 md:flex-row md:items-center md:gap-8 lg:gap-10">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center">
+      <section className="mb-8 py-2 md:py-6">
+        <div className="flex flex-col items-stretch gap-8 md:flex-row md:items-center md:gap-8 lg:gap-10">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center py-2 md:py-6">
             <p className="text-2xl font-black leading-tight tracking-tight text-[var(--text-secondary)] opacity-80 sm:text-3xl md:text-4xl">
               {new Date().toLocaleDateString('ca-ES', {
                 weekday: 'long',
@@ -329,15 +334,52 @@ export default function Dashboard() {
               <p className="mt-3 text-sm font-medium text-blue-600 dark:text-blue-400">Encara no hi ha sortides</p>
             )}
           </div>
-          <div className="mx-auto flex w-full max-w-[min(100%,480px)] shrink-0 items-center justify-center md:mx-0 md:w-auto md:max-w-[450px] lg:max-w-[480px]">
+          <div className="mx-auto flex w-full min-w-0 shrink-0 items-center justify-center md:mx-0 md:w-[min(46%,420px)] md:max-w-[min(46vw,480px)] lg:w-[min(42%,520px)]">
             <img
               src="/bike-hero-portada.png"
               alt=""
-              className="h-auto w-full max-h-[330px] object-contain object-center md:max-h-[min(330px,100%)] md:object-right"
+              className="h-auto w-full max-h-[min(85vh,560px)] object-contain object-center sm:max-h-[min(80vh,520px)] md:max-h-[min(72vh,480px)] md:object-right lg:max-h-[min(70vh,520px)]"
             />
           </div>
         </div>
       </section>
+
+      {stats.distancia > 0 && tresAproxKmSabadell.length > 0 && (
+        <section className="app-card rounded-2xl border border-dashed border-[var(--accent)]/25 bg-[var(--bg-card)] p-4 md:p-5">
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+            I si aquests quilòmetres fossin un sol viatge des de Sabadell?
+          </h2>
+          <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-muted)]">
+            Orientatiu: distàncies aproximades per carretera. Es mostren les{' '}
+            <strong className="font-medium text-[var(--text-secondary)]">3 direccions</strong> on una ciutat
+            assolible amb els vostres{' '}
+            <strong className="tabular-nums text-[var(--accent)]">{stats.distancia.toFixed(0)} km</strong>{' '}
+            acumulats aprofita millor el crèdit (més a prop d’arribar-ne just al límit).
+          </p>
+          <ul className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
+            {tresAproxKmSabadell.map((a, i) => (
+              <li key={`${a.direccio}-${a.desti.nom}-${i}`} className="flex gap-3 border-b border-[var(--border)] pb-3 last:border-0 last:pb-0">
+                <span
+                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]"
+                  aria-hidden
+                >
+                  {i + 1}
+                </span>
+                <div>
+                  <div className="font-medium text-[var(--text-primary)]">{a.direccio}</div>
+                  <div className="mt-0.5">
+                    Fins a <strong>{a.desti.nom}</strong>
+                    {a.desti.pais ? (
+                      <span className="text-[var(--text-muted)]"> ({a.desti.pais})</span>
+                    ) : null}
+                    <span className="tabular-nums text-[var(--text-muted)]"> · ~{a.desti.km} km</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section>
         <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-[var(--border)] md:grid-cols-3">

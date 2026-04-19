@@ -88,8 +88,8 @@ export const SECTORS_DES_SABADELL: SectorDestins[] = [
     direccio: 'Itàlia / Alps',
     destins: [
       { nom: 'Torí', km: 780, pais: 'Itàlia' },
-      { nom: 'Milà', km: 1020, pais: 'Itàlia' },
       { nom: 'Gènova', km: 880, pais: 'Itàlia' },
+      { nom: 'Milà', km: 1020, pais: 'Itàlia' },
       { nom: 'Roma', km: 1450, pais: 'Itàlia' },
     ],
   },
@@ -97,8 +97,8 @@ export const SECTORS_DES_SABADELL: SectorDestins[] = [
     id: 'europa_centre',
     direccio: 'Europa central (Alemanya)',
     destins: [
-      { nom: 'Munic', km: 1180, pais: 'Alemanya' },
       { nom: 'Stuttgart', km: 1120, pais: 'Alemanya' },
+      { nom: 'Munic', km: 1180, pais: 'Alemanya' },
       { nom: 'Frankfurt', km: 1340, pais: 'Alemanya' },
       { nom: 'Berlín', km: 1820, pais: 'Alemanya' },
     ],
