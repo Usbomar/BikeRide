@@ -130,7 +130,7 @@ export default function Comarques() {
 
   return (
     <div>
-      <section className="mb-6">
+      <section className="mb-4 md:mb-5">
         <p className="mb-0.5 text-[10px] font-medium uppercase tracking-widest text-[var(--accent)]">
           Territori explorat
         </p>
@@ -140,60 +140,80 @@ export default function Comarques() {
         </p>
       </section>
 
-      <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-        <div className="w-full max-w-lg flex-1 mx-auto lg:mx-0">
-          <svg viewBox="0 0 400 500" className="w-full max-w-lg mx-auto">
-            {COMARQUES_SVG.map((comarca) => {
-              const isVisited = visitades.has(comarca.id);
-              const stats = statsForNom(statsPerComarca, comarca.nom);
-              const ratio = stats ? stats.count / maxCount : 0;
-              const fillColor = isVisited
-                ? `rgba(29, 158, 117, ${0.25 + ratio * 0.65})`
-                : 'var(--border)';
+      <div className="mb-5 flex flex-col gap-4 md:gap-5 lg:flex-row lg:items-stretch lg:gap-5">
+        <div className="mx-auto w-full max-w-xl flex-1 lg:mx-0">
+          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[linear-gradient(165deg,var(--superficie-soft)_0%,var(--bg-card)_45%,var(--superficie-muted)_100%)] p-3 shadow-sm ring-1 ring-[var(--border)]/60 md:p-4">
+            <div className="relative aspect-[5/4] w-full max-h-[min(72vh,520px)] md:aspect-[13/10]">
+              <svg
+                viewBox="74 93 256 200"
+                preserveAspectRatio="xMidYMid meet"
+                className="h-full w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+                aria-label="Mapa esquemàtic de comarques de Catalunya"
+              >
+                {COMARQUES_SVG.map((comarca) => {
+                  const isVisited = visitades.has(comarca.id);
+                  const stats = statsForNom(statsPerComarca, comarca.nom);
+                  const ratio = stats ? stats.count / maxCount : 0;
+                  const isSelected = comarcaSeleccionada === comarca.id;
+                  const fillColor = isVisited
+                    ? `rgba(29, 158, 117, ${0.22 + ratio * 0.62})`
+                    : 'color-mix(in srgb, var(--border) 88%, var(--superficie-muted) 12%)';
+                  const strokeBase = 'color-mix(in srgb, var(--text-primary) 14%, var(--bg-card) 86%)';
+                  const strokeActive = 'var(--accent)';
 
-              return (
-                <g
-                  key={comarca.id}
-                  className="cursor-pointer group"
-                  onClick={() =>
-                    setComarcaSeleccionada(comarcaSeleccionada === comarca.id ? null : comarca.id)
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setComarcaSeleccionada(comarcaSeleccionada === comarca.id ? null : comarca.id);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <path
-                    d={comarca.path}
-                    fill={fillColor}
-                    stroke="var(--bg-card)"
-                    strokeWidth={1.5}
-                    className="transition-all duration-200 group-hover:brightness-110"
-                  />
-                  {isVisited && stats != null && (
-                    <text
-                      x={comarca.labelX}
-                      y={comarca.labelY}
-                      fontSize={7}
-                      textAnchor="middle"
-                      fill="var(--accent-hover)"
-                      fontWeight={500}
-                      className="pointer-events-none select-none"
+                  return (
+                    <g
+                      key={comarca.id}
+                      className="cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)]"
+                      onClick={() =>
+                        setComarcaSeleccionada(comarcaSeleccionada === comarca.id ? null : comarca.id)
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setComarcaSeleccionada(comarcaSeleccionada === comarca.id ? null : comarca.id);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
                     >
-                      {stats.count}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+                      <path
+                        d={comarca.path}
+                        fill={fillColor}
+                        stroke={isSelected ? strokeActive : strokeBase}
+                        strokeWidth={isSelected ? 2.25 : 1.15}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        vectorEffect="nonScalingStroke"
+                        className={`transition-all duration-200 ${
+                          isSelected ? 'brightness-[1.03]' : 'group-hover:brightness-[1.06]'
+                        }`}
+                      />
+                      {isVisited && stats != null && (
+                        <text
+                          x={comarca.labelX}
+                          y={comarca.labelY}
+                          fontSize={8.5}
+                          textAnchor="middle"
+                          fill="var(--accent-hover)"
+                          fontWeight={600}
+                          stroke="var(--bg-card)"
+                          strokeWidth={1.1}
+                          paintOrder="stroke fill"
+                          className="pointer-events-none select-none"
+                        >
+                          {stats.count}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
         </div>
 
-        <div className="w-full min-w-0 flex-1 lg:max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 lg:sticky lg:top-24">
+        <div className="w-full min-w-0 flex-1 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-sm ring-1 ring-[var(--border)]/50 lg:max-w-md lg:sticky lg:top-24">
           {!comarcaSeleccionadaMeta ? (
             <p className="text-sm text-[var(--text-muted)]">Clica una comarca per veure el detall</p>
           ) : (
@@ -247,11 +267,16 @@ export default function Comarques() {
         </div>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-          Comarques explorades · {visitades.size} de {COMARQUES_SVG.length}
-        </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <section className="mt-1 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-sm ring-1 ring-[var(--border)]/40 md:p-5">
+        <div className="mb-3 flex flex-col gap-0.5 border-b border-[var(--border)]/80 pb-3 md:flex-row md:items-end md:justify-between">
+          <h2 className="text-base font-semibold text-[var(--text-primary)] md:text-lg">
+            Comarques explorades
+          </h2>
+          <p className="text-xs tabular-nums text-[var(--text-muted)]">
+            {visitades.size} de {COMARQUES_SVG.length}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
           {cardsOrdenades.map((comarca) => {
             const visited = visitades.has(comarca.id);
             const stats = statsForNom(statsPerComarca, comarca.nom);
@@ -261,7 +286,7 @@ export default function Comarques() {
               return (
                 <div
                   key={comarca.id}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--superficie-muted)]/40 p-3 opacity-50"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--superficie-muted)]/50 p-3 opacity-[0.72]"
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <span className="text-sm font-medium text-[var(--text-muted)]">{comarca.nom}</span>
@@ -275,7 +300,7 @@ export default function Comarques() {
             return (
               <div
                 key={comarca.id}
-                className="rounded-lg border border-[var(--border)] p-3 transition-shadow hover:shadow-sm"
+                className="rounded-xl border border-[var(--border)] p-3 transition-shadow hover:shadow-sm"
                 style={{
                   backgroundColor: `rgba(29, 158, 117, ${0.05 + ratio * 0.1})`,
                   borderLeftWidth: 3,
