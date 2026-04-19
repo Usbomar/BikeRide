@@ -405,16 +405,19 @@ export default function Dashboard() {
               })}
             </p>
             {ultimaSortida ? (
-              <div className="mt-3 flex flex-col items-end gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
-                <Link
-                  to={`/rutes/${ultimaSortida.id}`}
-                  className="max-w-full truncate text-blue-600 no-underline hover:underline dark:text-blue-400"
-                >
-                  {ultimaSortida.nom}
-                </Link>
-                <span className="shrink-0 text-sm">
-                  Darrera ruta: {dataUltimaSortidaFmt}
-                </span>
+              <div className="mt-3 flex flex-col items-end gap-0.5 text-right text-blue-600 dark:text-blue-400">
+                <p className="max-w-full text-sm font-semibold leading-snug">
+                  <span className="text-blue-600 dark:text-blue-400">Darrera ruta: </span>
+                  <Link
+                    to={`/rutes/${ultimaSortida.id}`}
+                    className="text-blue-600 no-underline hover:underline dark:text-blue-400"
+                  >
+                    &ldquo;{ultimaSortida.nom}&rdquo;
+                  </Link>
+                </p>
+                <p className="max-w-full text-[13px] font-normal leading-snug text-blue-600/90 dark:text-blue-400/90">
+                  {dataUltimaSortidaFmt}
+                </p>
               </div>
             ) : (
               <p className="mt-3 text-sm font-medium text-blue-600 dark:text-blue-400">Encara no hi ha sortides</p>
