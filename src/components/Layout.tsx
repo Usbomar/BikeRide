@@ -54,16 +54,6 @@ function IconaConfig() {
   );
 }
 
-function IconaPrevisioTemps() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-      <circle cx="12" cy="12" r="4" />
-      <path d="M16.5 17.5c1.5-2 1.2-4.5-.8-6.3-2-1.8-5-1.8-7 0" opacity={0.85} />
-    </svg>
-  );
-}
-
 function IconaHamburger() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
@@ -167,15 +157,22 @@ export default function Layout() {
             <div className="flex shrink-0 items-center gap-1.5">
               <Link
                 to="/meteo"
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                className={`flex h-9 w-9 shrink-0 overflow-hidden rounded-lg p-0 transition-[box-shadow,background-color] ${
                   location.pathname === '/meteo'
-                    ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
+                    ? 'bg-[var(--accent)]/10 ring-2 ring-[var(--accent)]/35'
+                    : 'hover:bg-[var(--superficie-soft)]'
                 }`}
                 title="Previsió del temps"
                 aria-label="Previsió del temps"
               >
-                <IconaPrevisioTemps />
+                <img
+                  src="/meteo-menu-icon.png"
+                  alt=""
+                  width={36}
+                  height={36}
+                  draggable={false}
+                  className="h-9 w-9 object-cover"
+                />
               </Link>
 
               <Link
@@ -203,15 +200,22 @@ export default function Layout() {
           <div className="flex shrink-0 items-center gap-1 md:hidden">
             <Link
               to="/meteo"
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+              className={`flex h-9 w-9 shrink-0 overflow-hidden rounded-lg p-0 transition-[box-shadow,background-color] ${
                 location.pathname === '/meteo'
-                  ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--accent)]/10 ring-2 ring-[var(--accent)]/35'
+                  : 'hover:bg-[var(--superficie-soft)]'
               }`}
               title="Previsió del temps"
               aria-label="Previsió del temps"
             >
-              <IconaPrevisioTemps />
+              <img
+                src="/meteo-menu-icon.png"
+                alt=""
+                width={36}
+                height={36}
+                draggable={false}
+                className="h-9 w-9 object-cover"
+              />
             </Link>
             <button
               type="button"
