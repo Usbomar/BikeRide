@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 import { useRutes } from '../store/useRutes';
 import { EmptyState } from '../components/EmptyState';
 import type { Ruta } from '../types/ruta';
-import { COMARQUES_MAP_VIEW, COMARQUES_MAPA } from '../data/comarques-map-projected';
+import {
+  buildComarquesMapModel,
+  COMARQUES_MAP_VIEW,
+  COMARQUES_REFERENCIA,
+} from '../data/comarques-map-projected';
 
 function normZona(z: string): string {
   return z.trim().toLowerCase();
@@ -55,12 +59,14 @@ export default function Comarques() {
     const set = new Set<string>();
     rutes.forEach((r) => {
       if (r.zona) {
-        const match = COMARQUES_MAPA.find((c) => c.nom.toLowerCase() === r.zona!.trim().toLowerCase());
+        const match = COMARQUES_REFERENCIA.find((c) => c.nom.toLowerCase() === r.zona!.trim().toLowerCase());
         if (match) set.add(match.id);
       }
     });
     return set;
   }, [rutes]);
+
+  const mapModel = useMemo(() => buildComarquesMapModel(visitades), [visitades]);
 
   const statsPerComarca = useMemo(() => {
     const map = new Map<string, { count: number; km: number; desnivell: number }>();
@@ -83,7 +89,7 @@ export default function Comarques() {
   );
 
   const comarcaSeleccionadaMeta = useMemo(
-    () => (comarcaSeleccionada ? COMARQUES_MAPA.find((c) => c.id === comarcaSeleccionada) : null),
+    () => (comarcaSeleccionada ? COMARQUES_REFERENCIA.find((c) => c.id === comarcaSeleccionada) : null),
     [comarcaSeleccionada]
   );
 
@@ -99,12 +105,12 @@ export default function Comarques() {
     : undefined;
 
   const cardsOrdenades = useMemo(() => {
-    const visitadesList = COMARQUES_MAPA.filter((c) => visitades.has(c.id)).sort((a, b) => {
+    const visitadesList = COMARQUES_REFERENCIA.filter((c) => visitades.has(c.id)).sort((a, b) => {
       const ca = statsForNom(statsPerComarca, a.nom)?.count ?? 0;
       const cb = statsForNom(statsPerComarca, b.nom)?.count ?? 0;
       return cb - ca;
     });
-    const noVisitades = COMARQUES_MAPA.filter((c) => !visitades.has(c.id)).sort((a, b) =>
+    const noVisitades = COMARQUES_REFERENCIA.filter((c) => !visitades.has(c.id)).sort((a, b) =>
       a.nom.localeCompare(b.nom, 'ca')
     );
     return [...visitadesList, ...noVisitades];
@@ -136,7 +142,7 @@ export default function Comarques() {
         </p>
         <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">Comarques</h1>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {visitades.size} comarques explorades de {COMARQUES_MAPA.length}
+          {visitades.size} comarques explorades de {COMARQUES_REFERENCIA.length}
         </p>
       </section>
 
@@ -148,9 +154,13 @@ export default function Comarques() {
                 viewBox={`0 0 ${COMARQUES_MAP_VIEW.w} ${COMARQUES_MAP_VIEW.h}`}
                 preserveAspectRatio="xMidYMid meet"
                 className="h-full w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-                aria-label="Mapa de comarques de Catalunya (límits orientatius)"
+                aria-label={
+                  visitades.size > 0
+                    ? 'Mapa centrat en les comarques amb rutes (límits orientatius)'
+                    : 'Mapa de comarques de Catalunya (límits orientatius)'
+                }
               >
-                {COMARQUES_MAPA.map((comarca) => {
+                {mapModel.comarques.map((comarca) => {
                   const isVisited = visitades.has(comarca.id);
                   const stats = statsForNom(statsPerComarca, comarca.nom);
                   const ratio = stats ? stats.count / maxCount : 0;
@@ -273,7 +283,7 @@ export default function Comarques() {
             Comarques explorades
           </h2>
           <p className="text-xs tabular-nums text-[var(--text-muted)]">
-            {visitades.size} de {COMARQUES_MAPA.length}
+            {visitades.size} de {COMARQUES_REFERENCIA.length}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
