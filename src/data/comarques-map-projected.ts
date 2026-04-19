@@ -4,7 +4,41 @@
  */
 import comarquesRaw from './comarques-catalunya.json';
 import { geoMercator, geoPath } from 'd3-geo';
-import type { Feature, FeatureCollection } from 'geojson';
+import type { Feature, FeatureCollection, MultiPolygon } from 'geojson';
+
+/** El GeoJSON d’origen duplica algunes comarques en diverses features (p. ex. Barcelonès); es fusionen en un sol polígon. */
+function fusionaPerNomComar(raw: FeatureCollection): FeatureCollection {
+  const byNom = new Map<string, Feature[]>();
+  for (const f of raw.features) {
+    const nom = (f.properties as { nom_comar: string }).nom_comar;
+    const arr = byNom.get(nom);
+    if (arr) arr.push(f);
+    else byNom.set(nom, [f]);
+  }
+  const features: Feature[] = [];
+  for (const [, list] of byNom) {
+    if (list.length === 1) {
+      features.push(list[0]);
+      continue;
+    }
+    const poligons: number[][][][] = [];
+    for (const f of list) {
+      const g = f.geometry;
+      if (g.type === 'MultiPolygon') {
+        poligons.push(...g.coordinates);
+      } else if (g.type === 'Polygon') {
+        poligons.push(g.coordinates);
+      }
+    }
+    const geometry: MultiPolygon = { type: 'MultiPolygon', coordinates: poligons };
+    features.push({
+      type: 'Feature',
+      properties: list[0].properties,
+      geometry,
+    });
+  }
+  return { type: 'FeatureCollection', features };
+}
 
 export interface ComarcaMapa {
   id: string;
@@ -23,7 +57,7 @@ const MAP_W = 960;
 const MAP_H = 780;
 const MAP_PAD = 32;
 
-const fc = comarquesRaw as FeatureCollection;
+const fc = fusionaPerNomComar(comarquesRaw as FeatureCollection);
 
 export function idDesDelNom(nom: string): string {
   return nom

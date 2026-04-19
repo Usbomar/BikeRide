@@ -29,7 +29,7 @@ const NAV_GRUPS = [
     items: [
       { to: '/mapa', label: 'Mapa' },
       { to: '/comarques', label: 'Comarques' },
-      { to: '/meteo', label: 'Meteo' },
+      { to: '/meteo', label: 'Previsió del temps' },
     ],
   },
   {
@@ -47,9 +47,19 @@ type GrupNav = (typeof NAV_GRUPS)[number];
 
 function IconaConfig() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
       <circle cx="12" cy="12" r="3" />
       <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  );
+}
+
+function IconaPrevisioTemps() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M16.5 17.5c1.5-2 1.2-4.5-.8-6.3-2-1.8-5-1.8-7 0" opacity={0.85} />
     </svg>
   );
 }
@@ -154,28 +164,55 @@ export default function Layout() {
 
             <div className="min-w-0 flex-1" aria-hidden />
 
-            <Link
-              to="/nova-ruta"
-              className="flex h-[44px] min-w-[122px] shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-[var(--accent2)] px-4 text-xs font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
-            >
-              Nova ruta
-            </Link>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Link
+                to="/meteo"
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                  location.pathname === '/meteo'
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
+                }`}
+                title="Previsió del temps"
+                aria-label="Previsió del temps"
+              >
+                <IconaPrevisioTemps />
+              </Link>
 
-            <Link
-              to="/configuracio"
-              className={`rounded-lg p-2 transition-colors ${
-                location.pathname === '/configuracio'
-                  ? 'text-[var(--accent)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
-              }`}
-              title="Configuració"
-              aria-label="Configuració"
-            >
-              <IconaConfig />
-            </Link>
+              <Link
+                to="/nova-ruta"
+                className="flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-[var(--accent2)] px-3 text-xs font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+              >
+                + Ruta
+              </Link>
+
+              <Link
+                to="/configuracio"
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                  location.pathname === '/configuracio'
+                    ? 'text-[var(--accent)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
+                }`}
+                title="Configuració"
+                aria-label="Configuració"
+              >
+                <IconaConfig />
+              </Link>
+            </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-1 md:hidden">
+            <Link
+              to="/meteo"
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                location.pathname === '/meteo'
+                  ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
+              }`}
+              title="Previsió del temps"
+              aria-label="Previsió del temps"
+            >
+              <IconaPrevisioTemps />
+            </Link>
             <button
               type="button"
               className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]"
@@ -188,7 +225,7 @@ export default function Layout() {
 
             <Link
               to="/configuracio"
-              className={`rounded-lg p-2 transition-colors ${
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
                 location.pathname === '/configuracio'
                   ? 'text-[var(--accent)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--superficie-soft)] hover:text-[var(--text-primary)]'
@@ -231,9 +268,9 @@ export default function Layout() {
               <Link
                 to="/nova-ruta"
                 onClick={() => setMenuMobilObert(false)}
-                className="mb-5 flex w-full items-center justify-center whitespace-nowrap rounded-xl bg-[var(--accent2)] px-4 py-3 text-sm font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
+                className="mb-5 flex w-full items-center justify-center whitespace-nowrap rounded-xl bg-[var(--accent2)] px-4 py-2 text-sm font-bold text-white no-underline transition-colors hover:bg-[var(--accent2-hover)]"
               >
-                Nova ruta
+                + Ruta
               </Link>
 
               <div className="mb-4">
