@@ -392,7 +392,7 @@ export default function Dashboard() {
             <img
               src="/bike-hero-portada.png"
               alt=""
-              className="h-auto w-full max-h-[min(63.75vh,420px)] object-contain object-left sm:max-h-[min(60vh,390px)] md:max-h-[min(54vh,360px)] md:object-left lg:max-h-[min(52.5vh,390px)]"
+              className="-scale-x-100 h-auto w-full max-h-[min(63.75vh,420px)] object-contain object-left sm:max-h-[min(60vh,390px)] md:max-h-[min(54vh,360px)] md:object-left lg:max-h-[min(52.5vh,390px)]"
             />
           </div>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center py-2 text-right md:py-6">
