@@ -1,4 +1,5 @@
 import type { Ruta, ImatgeRuta } from '../types/ruta';
+import { supabase } from '../lib/supabase';
 
 /** Format de fitxer JSON de còpia completa (rutes + opcionalment configuració). */
 export const BIKERIDE_BACKUP_VERSION = 1;
@@ -9,6 +10,50 @@ export interface BikeRideBackupFile {
   rutes: Ruta[];
   /** Objecte de configuració (es fusiona amb valors per defecte a la importació). */
   config?: Record<string, unknown>;
+}
+
+export async function uploadImatge(base64url: string, rutaId: string, imatgeId: string): Promise<string> {
+  const res = await fetch(base64url);
+  const blob = await res.blob();
+  const ext = blob.type.includes('png') ? 'png' : 'jpg';
+  const path = `${rutaId}/${imatgeId}.${ext}`;
+
+  const { error } = await supabase.storage.from('fotos').upload(path, blob, {
+    contentType: blob.type,
+    upsert: true,
+  });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('fotos').getPublicUrl(path);
+
+  return data.publicUrl;
+}
+
+async function uploadImatges(imatges: ImatgeRuta[], rutaId: string): Promise<ImatgeRuta[]> {
+  return Promise.all(
+    imatges.map(async (imatge) => {
+      if (!imatge.url.startsWith('data:')) return imatge;
+      const url = await uploadImatge(imatge.url, rutaId, imatge.id);
+      return { ...imatge, url };
+    })
+  );
+}
+
+export async function uploadImatgesRuta(ruta: Ruta): Promise<Ruta> {
+  const [fotos, mapes] = await Promise.all([uploadImatges(ruta.fotos, ruta.id), uploadImatges(ruta.mapes, ruta.id)]);
+  return { ...ruta, fotos, mapes };
+}
+
+export async function uploadImatgesRutes(rutes: Ruta[]): Promise<Ruta[]> {
+  return Promise.all(rutes.map(uploadImatgesRuta));
+}
+
+export async function upsertBackupRutes(rutesImportades: Ruta[]): Promise<Ruta[]> {
+  const rutes = await uploadImatgesRutes(rutesImportades);
+  const { error } = await supabase.from('rutes').upsert(rutes);
+  if (error) throw error;
+  return rutes;
 }
 
 function isImatgeRuta(x: unknown): x is ImatgeRuta {
