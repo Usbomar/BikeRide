@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../components/EmptyState';
 import { useRutes } from '../store/useRutes';
@@ -24,6 +24,13 @@ const TIPUS_LABEL: Record<TipusRuta | 'no especificat', string> = {
   altre: 'Altre',
   'no especificat': '—',
 };
+
+type PortadaFotoMode = 'cover' | 'contain';
+
+function modePortadaFoto(ratio: number | undefined): PortadaFotoMode {
+  if (ratio === undefined) return 'cover';
+  return ratio < 0.9 || ratio > 1.9 ? 'contain' : 'cover';
+}
 
 function dillunsDe(d: Date): Date {
   const r = new Date(d);
@@ -101,6 +108,7 @@ function SliderPortadaFotos({ ruta, intervalMs }: { ruta: Ruta; intervalMs: numb
   const fotos = ruta.fotos ?? [];
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [fotoRatios, setFotoRatios] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (fotos.length <= 1 || paused) return;
@@ -129,17 +137,53 @@ function SliderPortadaFotos({ ruta, intervalMs }: { ruta: Ruta; intervalMs: numb
         className="relative block min-h-[240px] flex-1 overflow-hidden bg-[var(--superficie-muted)] no-underline"
         aria-label={`Obrir foto ${idx + 1} del viatge ${ruta.nom} a l'àlbum`}
       >
-        {fotos.map((f, i) => (
-          <img
-            key={f.id}
-            src={f.url}
-            alt={f.caption || `${ruta.nom} — foto ${i + 1}`}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out ${
-              i === idx ? 'z-[1] opacity-100' : 'z-0 opacity-0'
-            }`}
-            loading={i === 0 ? 'eager' : 'lazy'}
-          />
-        ))}
+        {fotos.map((f, i) => {
+          const mode = modePortadaFoto(fotoRatios[f.id]);
+          const visibleClass = i === idx ? 'z-[1] opacity-100' : 'z-0 opacity-0';
+          const alt = f.caption || `${ruta.nom} — foto ${i + 1}`;
+          const loading = i === 0 ? 'eager' : 'lazy';
+          const onLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+            const img = event.currentTarget;
+            if (img.naturalHeight === 0) return;
+            const ratio = img.naturalWidth / img.naturalHeight;
+            setFotoRatios((prev) => (prev[f.id] === ratio ? prev : { ...prev, [f.id]: ratio }));
+          };
+
+          if (mode === 'contain') {
+            return (
+              <div
+                key={f.id}
+                className={`absolute inset-0 h-full w-full transition-opacity duration-700 ease-out ${visibleClass}`}
+              >
+                <img
+                  src={f.url}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-75"
+                  loading={loading}
+                />
+                <img
+                  src={f.url}
+                  alt={alt}
+                  className="relative z-[1] h-full w-full object-contain"
+                  loading={loading}
+                  onLoad={onLoad}
+                />
+              </div>
+            );
+          }
+
+          return (
+            <img
+              key={f.id}
+              src={f.url}
+              alt={alt}
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ease-out ${visibleClass}`}
+              loading={loading}
+              onLoad={onLoad}
+            />
+          );
+        })}
         <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,transparent_35%,rgba(0,0,0,0.18)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] bg-gradient-to-t from-black/55 to-transparent px-4 pb-3 pt-10" />
         <div className="pointer-events-none absolute bottom-2 left-3 z-[3] rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-medium text-white">
