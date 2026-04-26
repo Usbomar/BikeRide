@@ -9,6 +9,13 @@ interface OpenMeteoResponse {
     windspeed_10m_max: number[];
     weathercode: number[];
   };
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+    precipitation: number[];
+    windspeed_10m: number[];
+    weathercode: number[];
+  };
 }
 
 const METEO_URL =
@@ -16,6 +23,7 @@ const METEO_URL =
   'latitude=41.5085&longitude=2.1274' +
   '&daily=temperature_2m_max,temperature_2m_min,' +
   'precipitation_sum,windspeed_10m_max,weathercode' +
+  '&hourly=temperature_2m,precipitation,windspeed_10m,weathercode' +
   '&timezone=Europe%2FMadrid&forecast_days=7';
 
 function descripcioMeteo(code: number): {
@@ -129,6 +137,8 @@ type DiaProps = {
   vent: number;
   weathercode: number;
   esCapSetmana: boolean;
+  seleccionat?: boolean;
+  onSelect?: () => void;
 };
 
 function DiaCard({
@@ -139,6 +149,8 @@ function DiaCard({
   vent,
   weathercode,
   esCapSetmana,
+  seleccionat = false,
+  onSelect,
 }: DiaProps) {
   const desc = descripcioMeteo(weathercode);
   const sem = semaforo(tempMax, precipitacio, vent);
@@ -147,8 +159,12 @@ function DiaCard({
   const diaNum = new Date(data + 'T12:00:00').toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' });
 
   return (
-    <div
-      className={`app-card flex min-h-0 flex-col gap-3 ${esCapSetmana ? 'min-h-[220px] ring-1 ring-[var(--accent)]/30' : ''}`}
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`app-card flex min-h-0 flex-col gap-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/45 ${
+        esCapSetmana ? 'min-h-[220px]' : ''
+      } ${seleccionat ? 'ring-2 ring-[var(--accent)]/55' : esCapSetmana ? 'ring-1 ring-[var(--accent)]/30' : ''}`}
       style={esCapSetmana ? { background: colors.bg } : undefined}
     >
       <div className="flex items-start justify-between gap-2">
@@ -198,7 +214,83 @@ function DiaCard({
           {sem.text}
         </span>
       </div>
-    </div>
+    </button>
+  );
+}
+
+interface TramDia {
+  etiqueta: string;
+  hora: string;
+  temperatura: number;
+  precipitacio: number;
+  vent: number;
+  weathercode: number;
+}
+
+const HORES_TRAMS = [
+  { etiqueta: 'Matí', hora: '06:00' },
+  { etiqueta: 'Migdia', hora: '12:00' },
+  { etiqueta: 'Tarda', hora: '18:00' },
+  { etiqueta: 'Nit', hora: '21:00' },
+] as const;
+
+function tramsMeteoDia(meteo: OpenMeteoResponse, data: string): TramDia[] {
+  return HORES_TRAMS.flatMap(({ etiqueta, hora }) => {
+    const idx = meteo.hourly.time.findIndex((t) => t === `${data}T${hora}`);
+    if (idx < 0) return [];
+    return [
+      {
+        etiqueta,
+        hora,
+        temperatura: meteo.hourly.temperature_2m[idx],
+        precipitacio: meteo.hourly.precipitation[idx],
+        vent: meteo.hourly.windspeed_10m[idx],
+        weathercode: meteo.hourly.weathercode[idx],
+      },
+    ];
+  });
+}
+
+function DetallDia({ dia, trams }: { dia: DiaProps; trams: TramDia[] }) {
+  const dataLlarga = new Date(dia.data + 'T12:00:00').toLocaleDateString('ca-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  return (
+    <section className="app-card mb-8 border border-[var(--accent)]/20">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-semibold capitalize text-[var(--text-primary)]">Detall del {dataLlarga}</h2>
+          <p className="mt-0.5 text-xs text-[var(--text-muted)]">Condicions estimades per parts del dia</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {trams.map((tram) => {
+          const desc = descripcioMeteo(tram.weathercode);
+          return (
+            <div key={`${dia.data}-${tram.hora}`} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-3">
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-xs font-semibold text-[var(--text-primary)]">{tram.etiqueta}</div>
+                  <div className="text-[11px] text-[var(--text-muted)]">{tram.hora}</div>
+                </div>
+                <div className="text-[var(--accent)]">
+                  <MeteoIcona tipus={desc.icona} size={24} />
+                </div>
+              </div>
+              <div className="text-xl font-black text-[var(--text-primary)]">{Math.round(tram.temperatura)}°</div>
+              <div className="mt-1 text-[11px] text-[var(--text-secondary)]">{desc.label}</div>
+              <div className="mt-3 grid gap-1 text-[11px] text-[var(--text-secondary)]">
+                <span>{tram.precipitacio.toFixed(1)} mm pluja</span>
+                <span>{Math.round(tram.vent)} km/h vent</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -228,6 +320,7 @@ export default function Meteo() {
   const [carregant, setCarregant] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trigger, setTrigger] = useState(0);
+  const [dataSeleccionada, setDataSeleccionada] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -269,6 +362,12 @@ export default function Meteo() {
     }));
   }, [meteo]);
 
+  useEffect(() => {
+    if (dies.length === 0) return;
+    if (dataSeleccionada && dies.some((d) => d.data === dataSeleccionada)) return;
+    setDataSeleccionada(dies[0].data);
+  }, [dataSeleccionada, dies]);
+
   const diesLaboral = useMemo(
     () => dies.filter((d) => {
       const wd = new Date(d.data + 'T12:00:00').getDay();
@@ -286,6 +385,14 @@ export default function Meteo() {
   );
 
   const millorDia = useMemo(() => millorDiaCapSetmana(diesCapSetmana), [diesCapSetmana]);
+  const diaSeleccionat = useMemo(
+    () => dies.find((d) => d.data === dataSeleccionada) ?? dies[0] ?? null,
+    [dataSeleccionada, dies]
+  );
+  const tramsSeleccionats = useMemo(
+    () => (meteo && diaSeleccionat ? tramsMeteoDia(meteo, diaSeleccionat.data) : []),
+    [diaSeleccionat, meteo]
+  );
 
   return (
     <div>
@@ -330,7 +437,13 @@ export default function Meteo() {
             <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Dies laborables</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {diesLaboral.map((d) => (
-                <DiaCard key={d.data} {...d} esCapSetmana={false} />
+                <DiaCard
+                  key={d.data}
+                  {...d}
+                  esCapSetmana={false}
+                  seleccionat={diaSeleccionat?.data === d.data}
+                  onSelect={() => setDataSeleccionada(d.data)}
+                />
               ))}
             </div>
           </div>
@@ -348,10 +461,20 @@ export default function Meteo() {
               )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {diesCapSetmana.map((d) => (
-                  <DiaCard key={d.data} {...d} esCapSetmana />
+                  <DiaCard
+                    key={d.data}
+                    {...d}
+                    esCapSetmana
+                    seleccionat={diaSeleccionat?.data === d.data}
+                    onSelect={() => setDataSeleccionada(d.data)}
+                  />
                 ))}
               </div>
             </div>
+          )}
+
+          {diaSeleccionat && tramsSeleccionats.length > 0 && (
+            <DetallDia dia={diaSeleccionat} trams={tramsSeleccionats} />
           )}
         </>
       )}
