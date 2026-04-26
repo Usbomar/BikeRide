@@ -16,6 +16,9 @@ export interface Ruta {
   alcadaMaximaMetres?: number;
   tipus?: TipusRuta;
   zona?: string;
+  arribadaAdreca?: string;
+  arribadaLat?: number;
+  arribadaLng?: number;
   /** Contingut GPX com a string, per a ús futur (p. ex. traça al mapa). */
   gpxData?: string;
   dificultat?: number; // 1-5

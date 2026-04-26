@@ -8,7 +8,8 @@ import { EmptyState } from '../components/EmptyState';
 
 /**
  * Sortida habitual de les rutes: carrer Calassanç Duran, Sabadell [lat, lng].
- * Els destins es modelen com el centre de la comarca del camp `zona` (vegeu COMARCA_COORDS).
+ * Si una ruta té arribada geocodificada, es fa servir aquest punt. Si no,
+ * el destí es modela com el centre de la comarca del camp `zona`.
  */
 const PUNT_SORTIDA_SABADELL: [number, number] = [41.5435, 2.1092];
 
@@ -21,6 +22,50 @@ const FILTRES: { id: FiltreTipus; label: string }[] = [
   { id: 'gravel', label: 'Gravel' },
 ];
 
+type LatLng = [number, number];
+type RutaAmbArribada = Ruta & { arribadaLat: number; arribadaLng: number };
+
+interface OsrmRouteResponse {
+  routes?: { geometry?: { type?: string; coordinates?: [number, number][] } }[];
+}
+
+function teCoordenadesArribada(ruta: Ruta): ruta is RutaAmbArribada {
+  return Number.isFinite(ruta.arribadaLat) && Number.isFinite(ruta.arribadaLng);
+}
+
+function extreureCoordenadesGeoJSON(data: OsrmRouteResponse): LatLng[] | null {
+  const coords = data.routes?.[0]?.geometry?.coordinates;
+  if (!coords?.length) return null;
+  return coords.map((c) => [c[1], c[0]] as LatLng);
+}
+
+async function fetchTracBici(dest: LatLng, signal: AbortSignal): Promise<LatLng[]> {
+  const [lat0, lng0] = PUNT_SORTIDA_SABADELL;
+  const [lat1, lng1] = dest;
+  const base = `https://router.project-osrm.org/route/v1`;
+  const urls = [
+    `${base}/cycling/${lng0},${lat0};${lng1},${lat1}?overview=full&geometries=geojson`,
+    `${base}/foot/${lng0},${lat0};${lng1},${lat1}?overview=full&geometries=geojson`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal });
+      if (!res.ok) continue;
+      const data = (await res.json()) as OsrmRouteResponse;
+      const leaflet = extreureCoordenadesGeoJSON(data);
+      if (leaflet?.length) return leaflet;
+    } catch {
+      /* següent perfil o recta */
+    }
+  }
+
+  return [
+    [lat0, lng0],
+    [lat1, lng1],
+  ];
+}
+
 function offsetCoord(base: [number, number], index: number, total: number): [number, number] {
   const angle = (index / Math.max(total, 1)) * 2 * Math.PI;
   const r = total > 1 ? 0.018 : 0;
@@ -32,6 +77,44 @@ function colorPerTipus(tipus: TipusRuta | undefined): string {
   if (tipus === 'mtb') return 'var(--accent)';
   if (tipus === 'gravel') return 'var(--accent2)';
   return '#888780';
+}
+
+function RutaMapaPopup({ ruta }: { ruta: Ruta }) {
+  return (
+    <div className="min-w-[200px] text-sm">
+      <Link
+        to={`/rutes/${ruta.id}`}
+        className="mb-1 block font-medium text-[var(--accent)] no-underline hover:underline"
+      >
+        {ruta.nom}
+      </Link>
+      <p className="mb-2 text-xs text-[var(--text-muted)]">
+        {new Date(ruta.data).toLocaleDateString('ca-ES', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })}
+      </p>
+      {ruta.arribadaAdreca && (
+        <p className="mb-2 text-xs text-[var(--text-secondary)]">
+          Arribada: {ruta.arribadaAdreca}
+        </p>
+      )}
+      <p className="mb-3 text-xs text-[var(--text-secondary)]">
+        {ruta.distanciaKm != null ? `${ruta.distanciaKm.toFixed(1)} km` : '— km'} ·{' '}
+        {ruta.desnivellMetres != null ? `${ruta.desnivellMetres} m` : '— m'} · {ruta.tipus ?? '—'}
+      </p>
+      <button
+        type="button"
+        className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white"
+        onClick={() => {
+          window.location.assign(`/rutes/${ruta.id}`);
+        }}
+      >
+        Veure detall
+      </button>
+    </div>
+  );
 }
 
 export default function Mapa() {
@@ -61,84 +144,67 @@ export default function Mapa() {
   );
 
   const rutesPerMarcadors = useMemo(() => {
-    const ambZona = rutes.filter((r) => {
+    const ambDesti = rutes.filter((r) => {
       const z = r.zona?.trim();
-      return z != null && COMARCA_COORDS[z] != null;
+      return teCoordenadesArribada(r) || (z != null && COMARCA_COORDS[z] != null);
     });
-    if (filtreTipus === 'tots') return ambZona;
-    return ambZona.filter((r) => r.tipus === filtreTipus);
+    if (filtreTipus === 'tots') return ambDesti;
+    return ambDesti.filter((r) => r.tipus === filtreTipus);
   }, [rutes, filtreTipus]);
+
+  const rutesAmbArribada = useMemo(() => rutesPerMarcadors.filter(teCoordenadesArribada), [rutesPerMarcadors]);
+
+  const rutesPerComarca = useMemo(
+    () =>
+      rutesPerMarcadors.filter((r) => {
+        if (teCoordenadesArribada(r)) return false;
+        const z = r.zona?.trim();
+        return z != null && COMARCA_COORDS[z] != null;
+      }),
+    [rutesPerMarcadors]
+  );
 
   const rutesPerComarcaIndex = useMemo(() => {
     const byZona = new Map<string, Ruta[]>();
-    for (const r of rutesPerMarcadors) {
+    for (const r of rutesPerComarca) {
       const z = r.zona!.trim();
       const arr = byZona.get(z) ?? [];
       arr.push(r);
       byZona.set(z, arr);
     }
     return byZona;
-  }, [rutesPerMarcadors]);
+  }, [rutesPerComarca]);
 
   const comarquesExplorades = statsPerComarca.size;
 
   const zonasUniques = useMemo(() => {
     const set = new Set<string>();
-    for (const r of rutesPerMarcadors) {
+    for (const r of rutesPerComarca) {
       const z = r.zona?.trim();
       if (z && COMARCA_COORDS[z]) set.add(z);
     }
     return [...set].sort();
-  }, [rutesPerMarcadors]);
+  }, [rutesPerComarca]);
 
   const clauZonas = useMemo(() => zonasUniques.join('|'), [zonasUniques]);
+  const clauRutesArribada = useMemo(
+    () => rutesAmbArribada.map((r) => `${r.id}:${r.arribadaLat}:${r.arribadaLng}`).join('|'),
+    [rutesAmbArribada]
+  );
 
   const [tracBiciPerComarca, setTracBiciPerComarca] = useState<Record<string, [number, number][] | null>>({});
+  const [tracBiciPerRuta, setTracBiciPerRuta] = useState<Record<string, [number, number][] | null>>({});
 
   useEffect(() => {
     let cancelled = false;
     const ac = new AbortController();
-    const [lat0, lng0] = PUNT_SORTIDA_SABADELL;
-
-    function extreureCoordenadesGeoJSON(data: {
-      routes?: { geometry?: { type?: string; coordinates?: [number, number][] } }[];
-    }): [number, number][] | null {
-      const coords = data.routes?.[0]?.geometry?.coordinates;
-      if (!coords?.length) return null;
-      return coords.map((c) => [c[1], c[0]] as [number, number]);
-    }
 
     async function fetchRutaBici(comarca: string) {
       const dest = COMARCA_COORDS[comarca];
       if (!dest) return;
-      const [lat1, lng1] = dest;
-      const base = `https://router.project-osrm.org/route/v1`;
-      const urls = [
-        `${base}/cycling/${lng0},${lat0};${lng1},${lat1}?overview=full&geometries=geojson`,
-        `${base}/foot/${lng0},${lat0};${lng1},${lat1}?overview=full&geometries=geojson`,
-      ];
-      for (const url of urls) {
-        try {
-          const res = await fetch(url, { signal: ac.signal });
-          if (!res.ok) continue;
-          const data = (await res.json()) as Parameters<typeof extreureCoordenadesGeoJSON>[0];
-          const leaflet = extreureCoordenadesGeoJSON(data);
-          if (leaflet?.length) {
-            if (!cancelled) {
-              setTracBiciPerComarca((prev) => ({ ...prev, [comarca]: leaflet }));
-            }
-            return;
-          }
-        } catch {
-          /* següent perfil o recta */
-        }
-      }
-      const recta: [number, number][] = [
-        [lat0, lng0],
-        [lat1, lng1],
-      ];
+      const trac = await fetchTracBici(dest, ac.signal);
       if (!cancelled) {
-        setTracBiciPerComarca((prev) => ({ ...prev, [comarca]: recta }));
+        setTracBiciPerComarca((prev) => ({ ...prev, [comarca]: trac }));
       }
     }
 
@@ -155,6 +221,31 @@ export default function Mapa() {
       ac.abort();
     };
   }, [clauZonas, zonasUniques]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const ac = new AbortController();
+
+    async function fetchRutaBici(ruta: RutaAmbArribada) {
+      const trac = await fetchTracBici([ruta.arribadaLat, ruta.arribadaLng], ac.signal);
+      if (!cancelled) {
+        setTracBiciPerRuta((prev) => ({ ...prev, [ruta.id]: trac }));
+      }
+    }
+
+    queueMicrotask(() => setTracBiciPerRuta({}));
+    (async () => {
+      for (const ruta of rutesAmbArribada) {
+        if (cancelled) break;
+        await fetchRutaBici(ruta);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [clauRutesArribada, rutesAmbArribada]);
 
   return (
     <div>
@@ -229,6 +320,22 @@ export default function Mapa() {
                 <span className="text-xs font-medium">Sortida: Calassanç Duran, Sabadell</span>
               </Tooltip>
             </CircleMarker>
+            {rutesAmbArribada.map((ruta) => {
+              const positions = tracBiciPerRuta[ruta.id];
+              if (!positions || positions.length < 2) return null;
+              return (
+                <Polyline
+                  key={`trace-ruta-${ruta.id}`}
+                  positions={positions}
+                  pathOptions={{
+                    color: colorPerTipus(ruta.tipus),
+                    weight: 3,
+                    opacity: 0.82,
+                    lineJoin: 'round',
+                  }}
+                />
+              );
+            })}
             {zonasUniques.map((comarca) => {
               const positions = tracBiciPerComarca[comarca];
               if (!positions || positions.length < 2) return null;
@@ -274,7 +381,27 @@ export default function Mapa() {
                 </CircleMarker>
               );
             })}
-            {rutesPerMarcadors.map((ruta) => {
+            {rutesAmbArribada.map((ruta) => (
+              <CircleMarker
+                key={`arribada-${ruta.id}`}
+                center={[ruta.arribadaLat, ruta.arribadaLng]}
+                radius={8}
+                pathOptions={{
+                  fillColor: colorPerTipus(ruta.tipus),
+                  fillOpacity: 0.95,
+                  color: '#fff',
+                  weight: 2,
+                }}
+              >
+                <Tooltip direction="top" offset={[0, -6]}>
+                  <span className="text-xs font-medium">{ruta.nom}</span>
+                </Tooltip>
+                <Popup>
+                  <RutaMapaPopup ruta={ruta} />
+                </Popup>
+              </CircleMarker>
+            ))}
+            {rutesPerComarca.map((ruta) => {
               const zona = ruta.zona!.trim();
               const base = COMARCA_COORDS[zona]!;
               const grup = rutesPerComarcaIndex.get(zona) ?? [];
@@ -293,35 +420,7 @@ export default function Mapa() {
                   }}
                 >
                   <Popup>
-                    <div className="min-w-[200px] text-sm">
-                      <Link
-                        to={`/rutes/${ruta.id}`}
-                        className="mb-1 block font-medium text-[var(--accent)] no-underline hover:underline"
-                      >
-                        {ruta.nom}
-                      </Link>
-                      <p className="mb-2 text-xs text-[var(--text-muted)]">
-                        {new Date(ruta.data).toLocaleDateString('ca-ES', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </p>
-                      <p className="mb-3 text-xs text-[var(--text-secondary)]">
-                        {ruta.distanciaKm != null ? `${ruta.distanciaKm.toFixed(1)} km` : '— km'} ·{' '}
-                        {ruta.desnivellMetres != null ? `${ruta.desnivellMetres} m` : '— m'} ·{' '}
-                        {ruta.tipus ?? '—'}
-                      </p>
-                      <button
-                        type="button"
-                        className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white"
-                        onClick={() => {
-                          window.location.assign(`/rutes/${ruta.id}`);
-                        }}
-                      >
-                        Veure detall
-                      </button>
-                    </div>
+                    <RutaMapaPopup ruta={ruta} />
                   </Popup>
                 </CircleMarker>
               );
@@ -331,7 +430,7 @@ export default function Mapa() {
       </div>
 
       <p className="mt-3 max-w-3xl text-xs leading-relaxed text-[var(--text-muted)]">
-        Les línies segueixen un traçat aproximat per bicicleta (OSRM) des del carrer Calassanç Duran (Sabadell) fins al centre de la comarca de destí indicada a cada ruta. Si el servei no respon, es mostra la línia recta.
+        Les línies segueixen un traçat aproximat per bicicleta (OSRM) des del carrer Calassanç Duran (Sabadell) fins a l’arribada indicada a cada ruta. Si una ruta encara no té arribada, es fa servir el centre de la comarca com a referència; si el servei no respon, es mostra la línia recta.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-secondary)]">

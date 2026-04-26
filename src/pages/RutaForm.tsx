@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useRutes } from '../store/useRutes';
 import ImageUpload from '../components/ImageUpload';
 import type { TipusRuta } from '../types/ruta';
+import { geocodificaAdreca } from '../utils/geocoding';
 
 const TIPUS_OPCIONS: { value: TipusRuta; label: string }[] = [
   { value: 'carretera', label: 'Carretera' },
@@ -66,6 +67,9 @@ const emptyForm = {
   alcadaMaximaMetres: undefined as number | undefined,
   tipus: undefined as TipusRuta | undefined,
   zona: '',
+  arribadaAdreca: '',
+  arribadaLat: undefined as number | undefined,
+  arribadaLng: undefined as number | undefined,
   dificultat: undefined as number | undefined,
   velocitatMitjana: undefined as number | undefined,
   velocitatMaxima: undefined as number | undefined,
@@ -82,6 +86,7 @@ export default function RutaForm() {
   const navigate = useNavigate();
   const { getRuta, addRuta, updateRuta } = useRutes();
   const [form, setForm] = useState(emptyForm);
+  const [desant, setDesant] = useState(false);
 
   const isEdit = Boolean(id);
   const ruta = id ? getRuta(id) : null;
@@ -97,6 +102,9 @@ export default function RutaForm() {
       alcadaMaximaMetres: ruta.alcadaMaximaMetres,
       tipus: ruta.tipus,
       zona: ruta.zona ?? '',
+      arribadaAdreca: ruta.arribadaAdreca ?? '',
+      arribadaLat: ruta.arribadaLat,
+      arribadaLng: ruta.arribadaLng,
       dificultat: ruta.dificultat,
       velocitatMitjana: ruta.velocitatMitjana,
       velocitatMaxima: ruta.velocitatMaxima,
@@ -107,12 +115,48 @@ export default function RutaForm() {
     queueMicrotask(() => setForm(next));
   }, [ruta]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setDesant(true);
+
+    const arribadaAdreca = form.arribadaAdreca.trim();
+    let arribadaLat = arribadaAdreca ? form.arribadaLat : undefined;
+    let arribadaLng = arribadaAdreca ? form.arribadaLng : undefined;
+    const adrecaAnterior = ruta?.arribadaAdreca?.trim() ?? '';
+    const calGeocodificar = Boolean(arribadaAdreca) && (arribadaAdreca !== adrecaAnterior || arribadaLat == null || arribadaLng == null);
+
+    if (calGeocodificar) {
+      try {
+        const coords = await geocodificaAdreca(arribadaAdreca);
+        if (!coords) {
+          window.alert('No s’ha pogut localitzar aquesta adreça d’arribada. Revisa el text o afegeix una referència més concreta.');
+          setDesant(false);
+          return;
+        }
+        arribadaLat = coords.lat;
+        arribadaLng = coords.lng;
+      } catch (error) {
+        console.error('BikeRide: no s’ha pogut geocodificar l’arribada', error);
+        window.alert('No s’ha pogut localitzar l’arribada. Revisa la connexió i torna-ho a provar.');
+        setDesant(false);
+        return;
+      }
+    }
+
+    const rutaForm = {
+      ...form,
+      arribadaAdreca: arribadaAdreca || undefined,
+      arribadaLat,
+      arribadaLng,
+      mapes: form.mapes,
+      fotos: form.fotos,
+    };
+
     const ok =
       isEdit && id
-        ? updateRuta(id, { ...form, mapes: form.mapes, fotos: form.fotos })
-        : addRuta({ ...form, mapes: form.mapes, fotos: form.fotos });
+        ? updateRuta(id, rutaForm)
+        : addRuta(rutaForm);
+    setDesant(false);
     if (ok) navigate('/rutes');
   };
 
@@ -166,6 +210,26 @@ export default function RutaForm() {
               <label className={labelClass}>Dificultat (1-5)</label>
               <input type="number" min={1} max={5} value={form.dificultat ?? ''} onChange={(e) => setForm((f) => ({ ...f, dificultat: e.target.value ? Number(e.target.value) : undefined }))} className={inputClass} />
             </div>
+          </div>
+          <div>
+            <label className={labelClass}>Arribada</label>
+            <input
+              type="text"
+              value={form.arribadaAdreca}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  arribadaAdreca: e.target.value,
+                  arribadaLat: undefined,
+                  arribadaLng: undefined,
+                }))
+              }
+              className={inputClass}
+              placeholder="ex. Monestir de Montserrat, Monistrol de Montserrat"
+            />
+            <p className="mt-1 text-[11px] leading-snug text-[var(--text-muted)]">
+              La sortida es manté fixa a Calassanç Duran, Sabadell. L’arribada es localitza automàticament per dibuixar el recorregut aproximat.
+            </p>
           </div>
         </fieldset>
 
@@ -223,8 +287,8 @@ export default function RutaForm() {
         </fieldset>
 
         <div className="flex gap-2 pt-2">
-          <button type="submit" className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--accent)] hover:opacity-90">
-            {isEdit ? 'Desar' : 'Afegir ruta'}
+          <button type="submit" disabled={desant} className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--accent)] hover:opacity-90 disabled:cursor-wait disabled:opacity-70">
+            {desant ? 'Desant…' : isEdit ? 'Desar' : 'Afegir ruta'}
           </button>
           <button
             type="button"
