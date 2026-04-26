@@ -18,13 +18,62 @@ interface OpenMeteoResponse {
   };
 }
 
-const METEO_URL =
-  'https://api.open-meteo.com/v1/forecast?' +
-  'latitude=41.5085&longitude=2.1274' +
-  '&daily=temperature_2m_max,temperature_2m_min,' +
-  'precipitation_sum,windspeed_10m_max,weathercode' +
-  '&hourly=temperature_2m,precipitation,windspeed_10m,weathercode' +
-  '&timezone=Europe%2FMadrid&forecast_days=7';
+interface UbicacioMeteo {
+  nom: string;
+  lat: number;
+  lng: number;
+}
+
+interface NominatimResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+}
+
+const UBICACIO_INICIAL: UbicacioMeteo = {
+  nom: 'Barberà del Vallès',
+  lat: 41.5085,
+  lng: 2.1274,
+};
+
+function buildMeteoUrl({ lat, lng }: UbicacioMeteo): string {
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lng),
+    daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode',
+    hourly: 'temperature_2m,precipitation,windspeed_10m,weathercode',
+    timezone: 'Europe/Madrid',
+    forecast_days: '7',
+  });
+  return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+}
+
+async function cercaMunicipiCatalunya(text: string): Promise<UbicacioMeteo | null> {
+  const query = text.trim();
+  if (!query) return null;
+
+  const params = new URLSearchParams({
+    q: `${query}, Catalunya, Spain`,
+    format: 'jsonv2',
+    limit: '1',
+    countrycodes: 'es',
+  });
+
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as NominatimResult[];
+  const first = data[0];
+  if (!first) return null;
+
+  const lat = Number(first.lat);
+  const lng = Number(first.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  return { nom: query, lat, lng };
+}
 
 function descripcioMeteo(code: number): {
   label: string;
@@ -321,6 +370,10 @@ export default function Meteo() {
   const [error, setError] = useState<string | null>(null);
   const [trigger, setTrigger] = useState(0);
   const [dataSeleccionada, setDataSeleccionada] = useState<string | null>(null);
+  const [ubicacio, setUbicacio] = useState<UbicacioMeteo>(UBICACIO_INICIAL);
+  const [ciutatInput, setCiutatInput] = useState(UBICACIO_INICIAL.nom);
+  const [cercantCiutat, setCercantCiutat] = useState(false);
+  const [errorCiutat, setErrorCiutat] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -328,7 +381,7 @@ export default function Meteo() {
       setCarregant(true);
       setError(null);
     });
-    fetch(METEO_URL)
+    fetch(buildMeteoUrl(ubicacio))
       .then((r) => {
         if (!r.ok) throw new Error('HTTP');
         return r.json();
@@ -347,7 +400,27 @@ export default function Meteo() {
     return () => {
       cancelled = true;
     };
-  }, [trigger]);
+  }, [trigger, ubicacio]);
+
+  const buscarCiutat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorCiutat(null);
+    setCercantCiutat(true);
+    try {
+      const next = await cercaMunicipiCatalunya(ciutatInput);
+      if (!next) {
+        setErrorCiutat('No s’ha trobat aquest municipi. Prova amb el nom complet.');
+        return;
+      }
+      setUbicacio(next);
+      setDataSeleccionada(null);
+    } catch (error) {
+      console.error('BikeRide: no s’ha pogut cercar la ciutat', error);
+      setErrorCiutat('No s’ha pogut cercar la ciutat. Torna-ho a provar.');
+    } finally {
+      setCercantCiutat(false);
+    }
+  };
 
   const dies = useMemo(() => {
     if (!meteo) return [];
@@ -401,8 +474,29 @@ export default function Meteo() {
         <h1 className="text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
           Previsió del temps
         </h1>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">Barberà del Vallès · 7 dies</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">{ubicacio.nom} · 7 dies</p>
       </section>
+
+      <form onSubmit={buscarCiutat} className="app-card mb-6 flex flex-col gap-2 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1">
+          <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">Municipi de Catalunya</label>
+          <input
+            type="text"
+            value={ciutatInput}
+            onChange={(e) => setCiutatInput(e.target.value)}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
+            placeholder="ex. Girona, Manresa, Vic..."
+          />
+          {errorCiutat && <p className="mt-1 text-xs text-[#A32D2D]">{errorCiutat}</p>}
+        </div>
+        <button
+          type="submit"
+          disabled={cercantCiutat || ciutatInput.trim().length === 0}
+          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+        >
+          {cercantCiutat ? 'Cercant…' : 'Veure temps'}
+        </button>
+      </form>
 
       {carregant && (
         <div className="space-y-8">
