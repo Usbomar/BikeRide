@@ -79,6 +79,12 @@ function colorPerTipus(tipus: TipusRuta | undefined): string {
   return '#888780';
 }
 
+function colorLiniaPerTipus(tipus: TipusRuta | undefined): string {
+  if (tipus === 'gravel') return 'var(--accent2)';
+  if (tipus === 'carretera') return 'var(--superficie)';
+  return 'var(--accent)';
+}
+
 function RutaMapaPopup({ ruta }: { ruta: Ruta }) {
   return (
     <div className="min-w-[200px] text-sm">
@@ -328,7 +334,7 @@ export default function Mapa() {
                   key={`trace-ruta-${ruta.id}`}
                   positions={positions}
                   pathOptions={{
-                    color: colorPerTipus(ruta.tipus),
+                    color: colorLiniaPerTipus(ruta.tipus),
                     weight: 3,
                     opacity: 0.82,
                     lineJoin: 'round',
@@ -344,7 +350,7 @@ export default function Mapa() {
                   key={`trace-${comarca}`}
                   positions={positions}
                   pathOptions={{
-                    color: colorPerTipus(
+                    color: colorLiniaPerTipus(
                       rutesPerMarcadors.find((r) => r.zona?.trim() === comarca)?.tipus
                     ),
                     weight: 3,
