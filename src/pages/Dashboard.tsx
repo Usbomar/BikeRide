@@ -153,15 +153,8 @@ function SliderPortadaFotos({ ruta, intervalMs }: { ruta: Ruta; intervalMs: numb
             return (
               <div
                 key={f.id}
-                className={`absolute inset-0 h-full w-full transition-opacity duration-700 ease-out ${visibleClass}`}
+                className={`absolute inset-0 h-full w-full bg-[var(--bg)] transition-opacity duration-700 ease-out ${visibleClass}`}
               >
-                <img
-                  src={f.url}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-75"
-                  loading={loading}
-                />
                 <img
                   src={f.url}
                   alt={alt}
